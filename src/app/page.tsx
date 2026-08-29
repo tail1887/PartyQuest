@@ -4,8 +4,10 @@ import React, { useState, useEffect } from "react";
 import Header, { ActiveTab } from "@/components/Header";
 import OnboardingModal from "@/components/OnboardingModal";
 import QuestList from "@/components/QuestList";
+import QuestSuccessModal from "@/components/QuestSuccessModal";
 import { UserProfile, PartyInfo, Quest } from "@/types/party";
 import { PRESET_QUESTS } from "@/data/presetQuests";
+import { triggerConfetti } from "@/utils/confetti";
 import { Flame, ArrowRight } from "lucide-react";
 
 export default function Home() {
@@ -13,6 +15,7 @@ export default function Home() {
   const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<ActiveTab>("quests");
   const [quests, setQuests] = useState<Quest[]>(PRESET_QUESTS);
+  const [completedQuestModalData, setCompletedQuestModalData] = useState<Quest | null>(null);
   const [partyInfo, setPartyInfo] = useState<PartyInfo>({
     name: "2026 I/O Extended: Hack the Beat Networking Party",
     theme: "AI, Music & Tech Gathering 🌴",
@@ -49,9 +52,10 @@ export default function Home() {
   const handleOnboardingComplete = (newUser: UserProfile) => {
     setUser(newUser);
     setIsOnboardingOpen(false);
+    triggerConfetti();
   };
 
-  // 퀘스트 완료 임시 핸들러 (Task 4에서 포인트 및 Confetti 연동 강화)
+  // 퀘스트 완료 처리 + Confetti 폭죽 + 성공 모달
   const handleCompleteQuest = (questId: string, answer?: string) => {
     const targetQuest = quests.find((q) => q.id === questId);
     if (!targetQuest || targetQuest.completed) return;
@@ -68,16 +72,22 @@ export default function Home() {
     );
     setQuests(updatedQuests);
 
-    // 유저 포인트 및 완료 ID 업데이트
+    // 포인트 계산 및 유저 상태 업데이트
+    let newPoints = targetQuest.points;
     if (user) {
+      newPoints = user.points + targetQuest.points;
       const updatedUser: UserProfile = {
         ...user,
-        points: user.points + targetQuest.points,
+        points: newPoints,
         completedQuestIds: [...user.completedQuestIds, questId],
       };
       setUser(updatedUser);
       localStorage.setItem("partyquest_user", JSON.stringify(updatedUser));
     }
+
+    // 폭죽 효과 및 모달 오픈
+    triggerConfetti();
+    setCompletedQuestModalData(targetQuest);
   };
 
   return (
@@ -179,6 +189,14 @@ export default function Home() {
       <OnboardingModal
         isOpen={isOnboardingOpen}
         onComplete={handleOnboardingComplete}
+      />
+
+      {/* 퀘스트 완료 축하 모달 */}
+      <QuestSuccessModal
+        quest={completedQuestModalData}
+        currentPoints={user?.points || 0}
+        onClose={() => setCompletedQuestModalData(null)}
+        onGoToRewards={() => setActiveTab("rewards")}
       />
     </main>
   );
