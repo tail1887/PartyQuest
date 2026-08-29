@@ -54,6 +54,17 @@ export interface GuestbookEntry {
   createdAt: string;
 }
 
+export interface PhotoFeedEntry {
+  id: string;
+  userName: string;
+  userRole: string;
+  questTitle: string;
+  photoUrl: string;
+  caption?: string;
+  createdAt: string;
+  reactions: { [sticker: string]: number };
+}
+
 export interface RewardItem {
   id: string;
   title: string;

@@ -13,10 +13,11 @@ import JudgeQuickBanner from "@/components/JudgeQuickBanner";
 import LuckyRouletteModal from "@/components/LuckyRouletteModal";
 import SponsorModal from "@/components/SponsorModal";
 import CreateQuestModal from "@/components/CreateQuestModal";
-import { UserProfile, PartyInfo, Quest, GuestbookEntry, RewardItem, QuestSubmission } from "@/types/party";
+import { UserProfile, PartyInfo, Quest, GuestbookEntry, RewardItem, QuestSubmission, PhotoFeedEntry } from "@/types/party";
 import { PRESET_QUESTS } from "@/data/presetQuests";
 import { MOCK_GUESTS, INITIAL_GUESTBOOK } from "@/data/mockGuests";
 import { MOCK_REWARDS } from "@/data/mockRewards";
+import { INITIAL_PHOTO_FEED } from "@/data/mockPhotoFeed";
 import { triggerConfetti } from "@/utils/confetti";
 import { Flame, ArrowRight, Dices, Crown, PlusCircle } from "lucide-react";
 
@@ -30,6 +31,7 @@ export default function Home() {
   const [quests, setQuests] = useState<Quest[]>(PRESET_QUESTS);
   const [guests, setGuests] = useState<UserProfile[]>(MOCK_GUESTS);
   const [guestbook, setGuestbook] = useState<GuestbookEntry[]>(INITIAL_GUESTBOOK);
+  const [photoFeed, setPhotoFeed] = useState<PhotoFeedEntry[]>(INITIAL_PHOTO_FEED);
   const [rewards, setRewards] = useState<RewardItem[]>(MOCK_REWARDS);
   const [completedQuestModalData, setCompletedQuestModalData] = useState<Quest | null>(null);
   const [partyInfo, setPartyInfo] = useState<PartyInfo>({
@@ -93,7 +95,7 @@ export default function Home() {
     );
   };
 
-  // 퀘스트 완료 처리 + Confetti 폭죽 + 성공 모달
+  // 퀘스트 완료 처리 + Confetti 폭죽 + 성공 모달 + 사진 피드 등재
   const handleCompleteQuest = (questId: string, answer?: string, photoUrl?: string) => {
     const targetQuest = quests.find((q) => q.id === questId);
     if (!targetQuest || targetQuest.completed) return;
@@ -125,6 +127,21 @@ export default function Home() {
         prev.map((g) => (g.id === updatedUser.id ? updatedUser : g))
       );
       localStorage.setItem("partyquest_user", JSON.stringify(updatedUser));
+
+      // 사진 인증샷인 경우 네트워킹 커뮤니티 월 피드에 등재!
+      if (photoUrl) {
+        const newFeedEntry: PhotoFeedEntry = {
+          id: "pf_" + Date.now(),
+          userName: user.nickname,
+          userRole: user.role,
+          questTitle: targetQuest.title,
+          photoUrl: photoUrl,
+          caption: answer || "파티 퀘스트 인증 완수!",
+          createdAt: "방금 전",
+          reactions: { "🔥": 1, "🎉": 1 },
+        };
+        setPhotoFeed((prev) => [newFeedEntry, ...prev]);
+      }
     }
 
     // 폭죽 효과 및 모달 오픈
@@ -159,7 +176,7 @@ export default function Home() {
     triggerConfetti();
   };
 
-  // 생성자: 승인 처리
+  // 생성자: 승인 처리 (사진 피드 자동 등재)
   const handleApproveSubmission = (questId: string, submissionId: string) => {
     const targetQuest = quests.find((q) => q.id === questId);
     if (!targetQuest) return;
@@ -191,6 +208,21 @@ export default function Home() {
       localStorage.setItem("partyquest_user", JSON.stringify(updatedUser));
     }
 
+    // 사진 피드에 등재
+    if (submission.photoUrl) {
+      const newFeedEntry: PhotoFeedEntry = {
+        id: "pf_" + Date.now(),
+        userName: submission.userName,
+        userRole: "🎉 파티러버",
+        questTitle: targetQuest.title,
+        photoUrl: submission.photoUrl,
+        caption: submission.answerText || "생성자 승인 완료 퀘스트 인증샷!",
+        createdAt: "방금 전",
+        reactions: { "🔥": 2, "👏": 1 },
+      };
+      setPhotoFeed((prev) => [newFeedEntry, ...prev]);
+    }
+
     // 제출 목록 정리
     setQuests((prev) =>
       prev.map((q) =>
@@ -219,11 +251,10 @@ export default function Home() {
     );
   };
 
-  // 일반 유저 현상금 퀘스트 생성 (포인트 차감 예치)
+  // 일반 유저 현상금 퀘스트 생성
   const handleAddUserQuest = (newQuestData: Omit<Quest, "id" | "completed">, bountyCost: number) => {
     if (!user || user.points < bountyCost) return;
 
-    // 현상금 차감
     const updatedUser: UserProfile = {
       ...user,
       points: user.points - bountyCost,
@@ -232,7 +263,6 @@ export default function Home() {
     setGuests((prev) => prev.map((g) => (g.id === updatedUser.id ? updatedUser : g)));
     localStorage.setItem("partyquest_user", JSON.stringify(updatedUser));
 
-    // 퀘스트 추가
     const newQuest: Quest = {
       ...newQuestData,
       id: "quest_bounty_" + Date.now(),
@@ -240,7 +270,6 @@ export default function Home() {
     };
     setQuests((prev) => [newQuest, ...prev]);
 
-    // 방명록에 소식 자동 등재
     handleAddGuestbookEntry({
       fromUser: user.nickname,
       fromRole: user.role,
@@ -249,7 +278,24 @@ export default function Home() {
     });
   };
 
-  // 방명록 작성 처리 및 Q4 퀘스트 자동 완료 연동
+  // 사진 피드 스티커 반응 누르기
+  const handleReactPhotoFeed = (feedId: string, sticker: string) => {
+    setPhotoFeed((prev) =>
+      prev.map((item) =>
+        item.id === feedId
+          ? {
+              ...item,
+              reactions: {
+                ...item.reactions,
+                [sticker]: (item.reactions[sticker] || 0) + 1,
+              },
+            }
+          : item
+      )
+    );
+  };
+
+  // 방명록 작성 처리
   const handleAddGuestbookEntry = (entry: Omit<GuestbookEntry, "id" | "createdAt">) => {
     const newGb: GuestbookEntry = {
       ...entry,
@@ -259,7 +305,6 @@ export default function Home() {
     setGuestbook((prev) => [newGb, ...prev]);
     triggerConfetti();
 
-    // Q4 미션 자동 완료 연동
     const q4 = quests.find((q) => q.id === "quest_4");
     if (q4 && !q4.completed) {
       handleCompleteQuest("quest_4", `"${entry.message}" 남김 (${entry.sticker})`);
@@ -425,7 +470,9 @@ export default function Home() {
             currentUser={user}
             guests={guests}
             guestbook={guestbook}
+            photoFeed={photoFeed}
             onAddGuestbookEntry={handleAddGuestbookEntry}
+            onReactPhotoFeed={handleReactPhotoFeed}
             onOpenOnboarding={() => setIsOnboardingOpen(true)}
           />
         )}
