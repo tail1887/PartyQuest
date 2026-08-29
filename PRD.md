@@ -114,6 +114,9 @@
 - [x] **Task 18**: 네트워킹 월 이모지 토글/취소(-1/+1) 및 룰렛 당첨 쿠폰 QR 자동 발급/보관함 연동 (NetworkingWall.tsx & LuckyRouletteModal.tsx)
 - [x] **Task 19**: 프리셋 파티 퀘스트 실체적 사진 인증(Photo Verification) & 실기 입력 강화 (presetQuests.ts & QuestCard.tsx)
 - [x] **Task 20**: 메인 파티 배너 중복 마이월렛 버튼 제거 및 배너 퀵 액션 버튼 UI 정리 (page.tsx)
+- [x] **Task 21**: 프로덕션 서비스용 JudgeQuickBanner 배너 완전히 제거하여 상용 앱 완성도 확보 (page.tsx)
+
+
 
 
 

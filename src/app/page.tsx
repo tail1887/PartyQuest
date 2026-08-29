@@ -9,7 +9,6 @@ import Leaderboard from "@/components/Leaderboard";
 import RewardStore from "@/components/RewardStore";
 import HostDashboard from "@/components/HostDashboard";
 import QuestSuccessModal from "@/components/QuestSuccessModal";
-import JudgeQuickBanner from "@/components/JudgeQuickBanner";
 import LuckyRouletteModal from "@/components/LuckyRouletteModal";
 import SponsorModal from "@/components/SponsorModal";
 import CreateQuestModal from "@/components/CreateQuestModal";
@@ -82,20 +81,6 @@ export default function Home() {
     setGuests((prev) => [newUser, ...prev.filter((g) => g.id !== newUser.id)]);
     setIsOnboardingOpen(false);
     triggerConfetti();
-  };
-
-  const handleQuickSetup = (judgeUser: UserProfile) => {
-    setUser(judgeUser);
-    setGuests((prev) => [judgeUser, ...prev.filter((g) => g.id !== judgeUser.id)]);
-    setIsOnboardingOpen(false);
-
-    setQuests((prev) =>
-      prev.map((q) =>
-        q.id === "quest_1" || q.id === "quest_2"
-          ? { ...q, completed: true, completedAt: new Date().toISOString() }
-          : q
-      )
-    );
   };
 
   // 퀘스트 완료 처리
@@ -467,9 +452,6 @@ export default function Home() {
 
   return (
     <main className="min-h-screen flex flex-col pb-20">
-      {/* 심사관 원클릭 퀵 데모 배너 */}
-      <JudgeQuickBanner onQuickSetup={handleQuickSetup} />
-
       {/* 헤더 & 네비게이션 */}
       <Header
         user={user}
