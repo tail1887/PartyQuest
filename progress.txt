@@ -158,7 +158,13 @@ Model: Agentic Development Loop
 - 개별 파티 룸 공간: [🎯 퀘스트], [🤝 네트워킹], [🏆 랭킹], [🎁 리워드], [⚙️ 호스트] 5개 파티 전용 탭만 노출 및 🏠 파티 홈 중복 탭 제거
 - 빌드 검증: next build 성공
 
+[TASK 29 COMPLETE]
+- page.tsx 내 dynamic = "force-dynamic" 및 revalidate = 0 설정하여 Vercel HTML/JS 정적 캐시 무력화
+- 클라이언트 초기 진입 시 isLandingMode = true 강력 가드 적용
+- 빌드 검증: next build 성공
+
 ALL TASKS COMPLETE
+
 
 
 

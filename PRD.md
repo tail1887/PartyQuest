@@ -122,6 +122,9 @@
 - [x] **Task 26**: QR코드 상세 보기 모달 중첩 닫기 X 버튼 중복 제거 및 UI 깔끔 단일화 (MyCouponWalletModal.tsx, CreatePartyModal.tsx, page.tsx)
 - [x] **Task 27**: 메인 플랫폼 메인 홈페이지 vs 개별 파티 룸 페이지 메뉴 & 아키텍처 책임 100% 완벽 분리 (MainPlatformHeader.tsx, PartyRoomHeader.tsx, page.tsx)
 - [x] **Task 28**: 스크린샷 제보 탭 메뉴 시각적 정돈 (메인 홈 탭 메뉴 vs 파티 룸 5대 탭 완벽 분리 및 🏠 파티 홈 탭 중복 제거)
+- [x] **Task 29**: Next.js force-dynamic 캐시 무력화 및 랜딩 모드 초기 가드 강화로 브라우저 구버전 메뉴 캐시 100% 갱신 (page.tsx)
+
+
 
 
 
