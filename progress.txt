@@ -163,7 +163,14 @@ Model: Agentic Development Loop
 - 클라이언트 초기 진입 시 isLandingMode = true 강력 가드 적용
 - 빌드 검증: next build 성공
 
+[TASK 30 COMPLETE]
+- 호스트(개최자) vs 일반 참가자 파티룸 탭 메뉴 권한 분리 (일반 참가자에게는 ⚙️ 호스트 탭 자동 숨김 처리)
+- 파티를 개최했거나 호스트 권한 보유자에게만 ⚙️ 호스트 탭 및 관리 대시보드 노출
+- GlobalUserProfile vs PartyUserProfile 타입 아키텍처 완전 분리
+- 빌드 검증: next build 성공
+
 ALL TASKS COMPLETE
+
 
 
 
