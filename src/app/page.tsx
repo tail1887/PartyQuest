@@ -3,13 +3,16 @@
 import React, { useState, useEffect } from "react";
 import Header, { ActiveTab } from "@/components/Header";
 import OnboardingModal from "@/components/OnboardingModal";
-import { UserProfile, PartyInfo } from "@/types/party";
-import { Sparkles, PartyPopper, Flame, Gift, ArrowRight } from "lucide-react";
+import QuestList from "@/components/QuestList";
+import { UserProfile, PartyInfo, Quest } from "@/types/party";
+import { PRESET_QUESTS } from "@/data/presetQuests";
+import { Flame, ArrowRight } from "lucide-react";
 
 export default function Home() {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<ActiveTab>("quests");
+  const [quests, setQuests] = useState<Quest[]>(PRESET_QUESTS);
   const [partyInfo, setPartyInfo] = useState<PartyInfo>({
     name: "2026 I/O Extended: Hack the Beat Networking Party",
     theme: "AI, Music & Tech Gathering 🌴",
@@ -18,12 +21,23 @@ export default function Home() {
     activeGuestsCount: 42,
   });
 
-  // 로컬스토리지에서 기존 유저 정보 로드
+  // 로컬스토리지에서 기존 유저 및 퀘스트 상태 로드
   useEffect(() => {
     const savedUser = localStorage.getItem("partyquest_user");
     if (savedUser) {
       try {
-        setUser(JSON.parse(savedUser));
+        const parsedUser: UserProfile = JSON.parse(savedUser);
+        setUser(parsedUser);
+
+        // 유저 완료 퀘스트 동기화
+        if (parsedUser.completedQuestIds && parsedUser.completedQuestIds.length > 0) {
+          setQuests((prev) =>
+            prev.map((q) => ({
+              ...q,
+              completed: parsedUser.completedQuestIds.includes(q.id),
+            }))
+          );
+        }
       } catch (e) {
         setIsOnboardingOpen(true);
       }
@@ -35,6 +49,35 @@ export default function Home() {
   const handleOnboardingComplete = (newUser: UserProfile) => {
     setUser(newUser);
     setIsOnboardingOpen(false);
+  };
+
+  // 퀘스트 완료 임시 핸들러 (Task 4에서 포인트 및 Confetti 연동 강화)
+  const handleCompleteQuest = (questId: string, answer?: string) => {
+    const targetQuest = quests.find((q) => q.id === questId);
+    if (!targetQuest || targetQuest.completed) return;
+
+    const updatedQuests = quests.map((q) =>
+      q.id === questId
+        ? {
+            ...q,
+            completed: true,
+            completedAt: new Date().toISOString(),
+            userAnswer: answer,
+          }
+        : q
+    );
+    setQuests(updatedQuests);
+
+    // 유저 포인트 및 완료 ID 업데이트
+    if (user) {
+      const updatedUser: UserProfile = {
+        ...user,
+        points: user.points + targetQuest.points,
+        completedQuestIds: [...user.completedQuestIds, questId],
+      };
+      setUser(updatedUser);
+      localStorage.setItem("partyquest_user", JSON.stringify(updatedUser));
+    }
   };
 
   return (
@@ -78,63 +121,58 @@ export default function Home() {
           </div>
         </div>
 
-        {/* 탭별 뷰 플레이스홀더 (Task 3~7에서 순차 구현) */}
-        <div className="bg-party-card border border-purple-500/20 rounded-3xl p-6 sm:p-8 shadow-xl">
-          {activeTab === "quests" && (
-            <div>
-              <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
-                🎯 파티 퀘스트 목록
-              </h3>
-              <p className="text-xs text-slate-400">
-                미션을 완수하고 포인트를 모아 스낵과 선물을 획득하세요! (Task 3 구현 예정)
-              </p>
-            </div>
-          )}
+        {/* 탭별 뷰 */}
+        {activeTab === "quests" && (
+          <QuestList
+            quests={quests}
+            onCompleteQuest={handleCompleteQuest}
+            onNavigateSocial={() => setActiveTab("networking")}
+          />
+        )}
 
-          {activeTab === "networking" && (
-            <div>
-              <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
-                🤝 참가자 네트워킹 월
-              </h3>
-              <p className="text-xs text-slate-400">
-                파티 참가자들의 프로필을 보고 응원 방명록을 남겨보세요! (Task 5 구현 예정)
-              </p>
-            </div>
-          )}
+        {activeTab === "networking" && (
+          <div className="bg-party-card border border-purple-500/20 rounded-3xl p-6 sm:p-8 shadow-xl">
+            <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
+              🤝 참가자 네트워킹 월
+            </h3>
+            <p className="text-xs text-slate-400">
+              파티 참가자들의 프로필을 보고 응원 방명록을 남겨보세요! (Task 5 구현 예정)
+            </p>
+          </div>
+        )}
 
-          {activeTab === "leaderboard" && (
-            <div>
-              <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
-                🏆 실시간 포인트 랭킹
-              </h3>
-              <p className="text-xs text-slate-400">
-                가장 적극적으로 파티를 즐긴 참가자 TOP 랭킹입니다! (Task 6 구현 예정)
-              </p>
-            </div>
-          )}
+        {activeTab === "leaderboard" && (
+          <div className="bg-party-card border border-purple-500/20 rounded-3xl p-6 sm:p-8 shadow-xl">
+            <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
+              🏆 실시간 포인트 랭킹
+            </h3>
+            <p className="text-xs text-slate-400">
+              가장 적극적으로 파티를 즐긴 참가자 TOP 랭킹입니다! (Task 6 구현 예정)
+            </p>
+          </div>
+        )}
 
-          {activeTab === "rewards" && (
-            <div>
-              <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
-                🎁 리워드 교환소
-              </h3>
-              <p className="text-xs text-slate-400">
-                모은 포인트로 스낵바 음료권 및 럭키드로우 티켓을 교환하세요! (Task 6 구현 예정)
-              </p>
-            </div>
-          )}
+        {activeTab === "rewards" && (
+          <div className="bg-party-card border border-purple-500/20 rounded-3xl p-6 sm:p-8 shadow-xl">
+            <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
+              🎁 리워드 교환소
+            </h3>
+            <p className="text-xs text-slate-400">
+              모은 포인트로 스낵바 음료권 및 럭키드로우 티켓을 교환하세요! (Task 6 구현 예정)
+            </p>
+          </div>
+        )}
 
-          {activeTab === "host" && (
-            <div>
-              <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
-                ⚙️ 호스트 파티 관리자 모드
-              </h3>
-              <p className="text-xs text-slate-400">
-                파티 정보와 퀘스트를 실시간으로 커스텀하세요! (Task 7 구현 예정)
-              </p>
-            </div>
-          )}
-        </div>
+        {activeTab === "host" && (
+          <div className="bg-party-card border border-purple-500/20 rounded-3xl p-6 sm:p-8 shadow-xl">
+            <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
+              ⚙️ 호스트 파티 관리자 모드
+            </h3>
+            <p className="text-xs text-slate-400">
+              파티 정보와 퀘스트를 실시간으로 커스텀하세요! (Task 7 구현 예정)
+            </p>
+          </div>
+        )}
       </div>
 
       {/* 온보딩 모달 */}

@@ -15,4 +15,11 @@ Model: Agentic Development Loop
 - 반응형 Header 컴포넌트 구현 (라이브 참여자 수, 포인트 뱃지, 탭 네비게이션)
 - 빌드 검증: next build 성공
 
+[TASK 3 COMPLETE]
+- 기본 파티 퀘스트 6종 프리셋 데이터 설계 (src/data/presetQuests.ts)
+- QuestCard 컴포넌트 구현 (카테고리 뱃지, 포인트 표시, 인터랙션 폼)
+- QuestList 컴포넌트 구현 (진행도 게이지 바, 카테고리 필터링, 완료 상태 관리)
+- 빌드 검증: next build 성공
+
+
 
