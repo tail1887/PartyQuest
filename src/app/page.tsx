@@ -13,7 +13,7 @@ import JudgeQuickBanner from "@/components/JudgeQuickBanner";
 import LuckyRouletteModal from "@/components/LuckyRouletteModal";
 import SponsorModal from "@/components/SponsorModal";
 import CreateQuestModal from "@/components/CreateQuestModal";
-import { UserProfile, PartyInfo, Quest, GuestbookEntry, RewardItem, QuestSubmission, PhotoFeedEntry } from "@/types/party";
+import { UserProfile, PartyInfo, Quest, GuestbookEntry, RewardItem, QuestSubmission, PhotoFeedEntry, RedeemedCoupon } from "@/types/party";
 import { PRESET_QUESTS } from "@/data/presetQuests";
 import { MOCK_GUESTS, INITIAL_GUESTBOOK } from "@/data/mockGuests";
 import { MOCK_REWARDS } from "@/data/mockRewards";
@@ -95,7 +95,7 @@ export default function Home() {
     );
   };
 
-  // 퀘스트 완료 처리 + Confetti 폭죽 + 성공 모달 + 사진 피드 등재
+  // 퀘스트 완료 처리
   const handleCompleteQuest = (questId: string, answer?: string, photoUrl?: string) => {
     const targetQuest = quests.find((q) => q.id === questId);
     if (!targetQuest || targetQuest.completed) return;
@@ -113,7 +113,6 @@ export default function Home() {
     );
     setQuests(updatedQuests);
 
-    // 포인트 계산 및 유저 상태 업데이트
     let newPoints = targetQuest.points;
     if (user) {
       newPoints = user.points + targetQuest.points;
@@ -128,7 +127,6 @@ export default function Home() {
       );
       localStorage.setItem("partyquest_user", JSON.stringify(updatedUser));
 
-      // 사진 인증샷인 경우 네트워킹 커뮤니티 월 피드에 등재!
       if (photoUrl) {
         const newFeedEntry: PhotoFeedEntry = {
           id: "pf_" + Date.now(),
@@ -144,12 +142,11 @@ export default function Home() {
       }
     }
 
-    // 폭죽 효과 및 모달 오픈
     triggerConfetti();
     setCompletedQuestModalData(targetQuest);
   };
 
-  // 생성자 승인 필요 퀘스트에 사진 제출
+  // 생성자 승인 제출
   const handleSubmitForApproval = (questId: string, photoUrl?: string, answerText?: string) => {
     if (!user) return;
 
@@ -176,7 +173,7 @@ export default function Home() {
     triggerConfetti();
   };
 
-  // 생성자: 승인 처리 (사진 피드 자동 등재)
+  // 생성자: 승인 처리
   const handleApproveSubmission = (questId: string, submissionId: string) => {
     const targetQuest = quests.find((q) => q.id === questId);
     if (!targetQuest) return;
@@ -184,7 +181,6 @@ export default function Home() {
     const submission = targetQuest.pendingSubmissions?.find((s) => s.id === submissionId);
     if (!submission) return;
 
-    // 승인 대상자에게 포인트 수여
     setGuests((prev) =>
       prev.map((g) =>
         g.id === submission.userId
@@ -197,7 +193,6 @@ export default function Home() {
       )
     );
 
-    // 내 자신이 승인받았을 경우
     if (user && user.id === submission.userId) {
       const updatedUser: UserProfile = {
         ...user,
@@ -208,7 +203,6 @@ export default function Home() {
       localStorage.setItem("partyquest_user", JSON.stringify(updatedUser));
     }
 
-    // 사진 피드에 등재
     if (submission.photoUrl) {
       const newFeedEntry: PhotoFeedEntry = {
         id: "pf_" + Date.now(),
@@ -223,7 +217,6 @@ export default function Home() {
       setPhotoFeed((prev) => [newFeedEntry, ...prev]);
     }
 
-    // 제출 목록 정리
     setQuests((prev) =>
       prev.map((q) =>
         q.id === questId
@@ -251,7 +244,7 @@ export default function Home() {
     );
   };
 
-  // 일반 유저 현상금 퀘스트 생성
+  // 현상금 퀘스트 생성
   const handleAddUserQuest = (newQuestData: Omit<Quest, "id" | "completed">, bountyCost: number) => {
     if (!user || user.points < bountyCost) return;
 
@@ -276,6 +269,58 @@ export default function Home() {
       message: `🎯 [현상금 퀘스트 생성] ${bountyCost}P를 내걸고 나만의 퀘스트 "${newQuestData.title}"를 개설했습니다!`,
       sticker: "💰",
     });
+  };
+
+  // 리워드 교환 핸들러 (내 쿠폰 보관함에 저장)
+  const handleRedeemReward = (reward: RewardItem) => {
+    if (!user || user.points < reward.pointsRequired) return;
+
+    const newCoupon: RedeemedCoupon = {
+      id: "cp_" + Date.now(),
+      rewardId: reward.id,
+      rewardTitle: reward.title,
+      icon: reward.icon,
+      couponCode: reward.couponCode,
+      redeemedAt: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      isUsed: false,
+    };
+
+    const updatedUser: UserProfile = {
+      ...user,
+      points: user.points - reward.pointsRequired,
+      myCoupons: [...(user.myCoupons || []), newCoupon],
+    };
+
+    setUser(updatedUser);
+    setGuests((prev) =>
+      prev.map((g) => (g.id === updatedUser.id ? updatedUser : g))
+    );
+    localStorage.setItem("partyquest_user", JSON.stringify(updatedUser));
+
+    setRewards((prev) =>
+      prev.map((r) =>
+        r.id === reward.id
+          ? { ...r, availableCount: Math.max(0, r.availableCount - 1) }
+          : r
+      )
+    );
+  };
+
+  // 내 쿠폰 사용 완료 처리 토글
+  const handleToggleUseCoupon = (couponId: string) => {
+    if (!user || !user.myCoupons) return;
+
+    const updatedCoupons = user.myCoupons.map((c) =>
+      c.id === couponId ? { ...c, isUsed: !c.isUsed } : c
+    );
+
+    const updatedUser: UserProfile = {
+      ...user,
+      myCoupons: updatedCoupons,
+    };
+    setUser(updatedUser);
+    setGuests((prev) => prev.map((g) => (g.id === updatedUser.id ? updatedUser : g)));
+    localStorage.setItem("partyquest_user", JSON.stringify(updatedUser));
   };
 
   // 사진 피드 스티커 반응 누르기
@@ -309,29 +354,6 @@ export default function Home() {
     if (q4 && !q4.completed) {
       handleCompleteQuest("quest_4", `"${entry.message}" 남김 (${entry.sticker})`);
     }
-  };
-
-  // 리워드 교환 핸들러
-  const handleRedeemReward = (reward: RewardItem) => {
-    if (!user || user.points < reward.pointsRequired) return;
-
-    const updatedUser: UserProfile = {
-      ...user,
-      points: user.points - reward.pointsRequired,
-    };
-    setUser(updatedUser);
-    setGuests((prev) =>
-      prev.map((g) => (g.id === updatedUser.id ? updatedUser : g))
-    );
-    localStorage.setItem("partyquest_user", JSON.stringify(updatedUser));
-
-    setRewards((prev) =>
-      prev.map((r) =>
-        r.id === reward.id
-          ? { ...r, availableCount: Math.max(0, r.availableCount - 1) }
-          : r
-      )
-    );
   };
 
   // 룰렛 당첨 처리
@@ -488,7 +510,9 @@ export default function Home() {
           <RewardStore
             currentUser={user}
             rewards={rewards}
+            myCoupons={user?.myCoupons || []}
             onRedeemReward={handleRedeemReward}
+            onToggleUseCoupon={handleToggleUseCoupon}
             onOpenOnboarding={() => setIsOnboardingOpen(true)}
           />
         )}

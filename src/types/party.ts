@@ -1,6 +1,16 @@
 export type Role = "💻 개발자" | "🎨 디자이너" | "👔 기획/PM" | "🎵 DJ/음악" | "🚀 창업가" | "🎉 파티러버";
 export type UserRole = Role;
 
+export interface RedeemedCoupon {
+  id: string;
+  rewardId: string;
+  rewardTitle: string;
+  icon: string;
+  couponCode: string;
+  redeemedAt: string;
+  isUsed: boolean;
+}
+
 export interface UserProfile {
   id: string;
   nickname: string;
@@ -12,6 +22,7 @@ export interface UserProfile {
   completedQuestIds: string[];
   joinedAt: string;
   avatarColor: string;
+  myCoupons?: RedeemedCoupon[];
 }
 
 export type QuestType = "click" | "input" | "check" | "photo" | "social";

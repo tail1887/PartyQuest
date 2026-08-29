@@ -90,7 +90,13 @@ Model: Agentic Development Loop
 - 퀘스트 사진 인증 완수 시 커뮤니티 피드 자동 게시 기능 구현
 - 빌드 검증: next build 성공
 
+[TASK 17 COMPLETE]
+- MyCouponWalletModal 컴포넌트 구현 (내 쿠폰/QR코드 영구 보관함, 바코드 다시보기 모달, 현장 사용완료 처리)
+- RewardStore 내 🎟️ 내 쿠폰 보관함 액션 버튼 연동 및 LocalStorage 자동 영구 저장
+- 빌드 검증: next build 성공
+
 ALL TASKS COMPLETE
+
 
 
 

@@ -1,27 +1,33 @@
 "use client";
 
 import React, { useState } from "react";
-import { UserProfile, RewardItem } from "@/types/party";
-import { Gift, Award, CheckCircle, Sparkles, QrCode, ArrowRight, X } from "lucide-react";
+import { UserProfile, RewardItem, RedeemedCoupon } from "@/types/party";
+import { Gift, Award, CheckCircle, Sparkles, QrCode, ArrowRight, X, Ticket } from "lucide-react";
 import { triggerConfetti } from "@/utils/confetti";
+import MyCouponWalletModal from "./MyCouponWalletModal";
 
 interface RewardStoreProps {
   currentUser: UserProfile | null;
   rewards: RewardItem[];
+  myCoupons: RedeemedCoupon[];
   onRedeemReward: (reward: RewardItem) => void;
+  onToggleUseCoupon?: (couponId: string) => void;
   onOpenOnboarding: () => void;
 }
 
 export default function RewardStore({
   currentUser,
   rewards,
+  myCoupons,
   onRedeemReward,
+  onToggleUseCoupon,
   onOpenOnboarding,
 }: RewardStoreProps) {
   const [activeCoupon, setActiveCoupon] = useState<{
     reward: RewardItem;
     issuedAt: string;
   } | null>(null);
+  const [isWalletOpen, setIsWalletOpen] = useState(false);
 
   const handleRedeem = (reward: RewardItem) => {
     if (!currentUser) {
@@ -39,6 +45,7 @@ export default function RewardStore({
   };
 
   const userPoints = currentUser?.points || 0;
+  const unusedCouponCount = myCoupons.filter((c) => !c.isUsed).length;
 
   return (
     <div className="space-y-6">
@@ -54,12 +61,19 @@ export default function RewardStore({
           </p>
         </div>
 
-        {/* 현재 포인트 */}
-        <div className="flex items-center gap-3 px-4 py-2.5 bg-slate-900/90 border border-cyan-500/40 rounded-2xl shadow-lg">
-          <Award className="w-5 h-5 text-amber-400" />
-          <div>
-            <span className="text-[10px] text-slate-400 block font-semibold">내 사용 가능 포인트</span>
-            <span className="text-lg font-black text-cyan-300">{userPoints} P</span>
+        {/* 내 쿠폰함 & 보유 포인트 액션 바 */}
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+          <button
+            onClick={() => setIsWalletOpen(true)}
+            className="px-4 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:opacity-90 active:scale-95 text-slate-950 rounded-2xl text-xs font-black shadow-lg shadow-cyan-500/20 flex items-center gap-1.5 cursor-pointer"
+          >
+            <Ticket className="w-4 h-4 text-slate-950" />
+            <span>🎟️ 내 쿠폰 보관함 ({unusedCouponCount}개)</span>
+          </button>
+
+          <div className="flex items-center gap-2 px-4 py-2 bg-slate-900/90 border border-cyan-500/40 rounded-2xl shadow-lg">
+            <Award className="w-4 h-4 text-amber-400" />
+            <span className="text-xs font-black text-cyan-300">{userPoints} P</span>
           </div>
         </div>
       </div>
@@ -139,17 +153,16 @@ export default function RewardStore({
 
             <div className="text-4xl mb-2">{activeCoupon.reward.icon}</div>
             <span className="inline-block px-3 py-1 rounded-full text-[10px] font-extrabold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 mb-2">
-              쿠폰 발급 완료
+              쿠폰 발급 완료 (보관함 저장됨)
             </span>
 
             <h4 className="text-lg font-bold text-white mb-1">
               {activeCoupon.reward.title}
             </h4>
             <p className="text-xs text-slate-300 mb-6">
-              스태프/바텐더에게 아래 바코드를 보여주세요!
+              스태프/바텐더에게 아래 바코드를 보여주세요! (내 쿠폰함에서 재열람 가능)
             </p>
 
-            {/* 바코드 UI 카드 */}
             <div className="bg-white text-slate-950 rounded-2xl p-5 mb-4 shadow-xl">
               <div className="flex items-center justify-center gap-1.5 mb-3">
                 <QrCode className="w-5 h-5 text-slate-800" />
@@ -158,7 +171,6 @@ export default function RewardStore({
                 </span>
               </div>
 
-              {/* 바코드 선 그래픽 */}
               <div className="h-14 flex items-center justify-center gap-1 overflow-hidden">
                 {[4, 2, 6, 2, 4, 8, 2, 6, 3, 5, 2, 7, 3, 6, 2, 4, 8, 3, 5, 2, 4, 6, 2].map((w, i) => (
                   <div
@@ -173,15 +185,28 @@ export default function RewardStore({
               </p>
             </div>
 
-            <button
-              onClick={() => setActiveCoupon(null)}
-              className="w-full py-2.5 bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 font-bold rounded-xl text-xs shadow-md shadow-cyan-500/20 cursor-pointer"
-            >
-              확인 완료
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  setActiveCoupon(null);
+                  setIsWalletOpen(true);
+                }}
+                className="flex-1 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 font-black rounded-xl text-xs shadow-md cursor-pointer"
+              >
+                🎟️ 내 쿠폰 보관함 열기
+              </button>
+            </div>
           </div>
         </div>
       )}
+
+      {/* 내 쿠폰 보관함 모달 */}
+      <MyCouponWalletModal
+        isOpen={isWalletOpen}
+        onClose={() => setIsWalletOpen(false)}
+        coupons={myCoupons}
+        onToggleUseCoupon={onToggleUseCoupon}
+      />
     </div>
   );
 }
