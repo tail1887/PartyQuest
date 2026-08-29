@@ -20,7 +20,7 @@ import { MOCK_GUESTS, INITIAL_GUESTBOOK } from "@/data/mockGuests";
 import { MOCK_REWARDS } from "@/data/mockRewards";
 import { INITIAL_PHOTO_FEED } from "@/data/mockPhotoFeed";
 import { triggerConfetti } from "@/utils/confetti";
-import { Flame, ArrowRight, Dices, Crown, PlusCircle } from "lucide-react";
+import { Flame, ArrowRight, Dices, Crown, PlusCircle, Ticket } from "lucide-react";
 
 export default function Home() {
   const [user, setUser] = useState<UserProfile | null>(null);
@@ -28,6 +28,7 @@ export default function Home() {
   const [isRouletteOpen, setIsRouletteOpen] = useState(false);
   const [isSponsorOpen, setIsSponsorOpen] = useState(false);
   const [isCreateQuestOpen, setIsCreateQuestOpen] = useState(false);
+  const [isWalletOpen, setIsWalletOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<ActiveTab>("quests");
   const [quests, setQuests] = useState<Quest[]>(PRESET_QUESTS);
   const [guests, setGuests] = useState<UserProfile[]>(MOCK_GUESTS);
@@ -325,7 +326,7 @@ export default function Home() {
     localStorage.setItem("partyquest_user", JSON.stringify(updatedUser));
   };
 
-  // 사진 피드 이모지 스티커 반응 (토글 +1 / -1)
+  // 사진 피드 이모지 스티커 반응
   const handleReactPhotoFeed = (feedId: string, sticker: string) => {
     if (!user) return;
 
@@ -340,11 +341,9 @@ export default function Home() {
         let newCount: number;
 
         if (isReacted) {
-          // 취소 (-1)
           newMyReactions = myReactions.filter((s) => s !== sticker);
           newCount = Math.max(0, (item.reactions[sticker] || 1) - 1);
         } else {
-          // 등록 (+1)
           newMyReactions = [...myReactions, sticker];
           newCount = (item.reactions[sticker] || 0) + 1;
         }
@@ -377,7 +376,7 @@ export default function Home() {
     }
   };
 
-  // 🎰 룰렛 당첨 처리 (쿠폰 당첨 시 내 보관함 저장 및 QR 팝업 자동 연동!)
+  // 🎰 룰렛 당첨 처리
   const handleSpinSuccess = (rewardName: string, bonusPoints?: number) => {
     if (!user) return;
     const cost = 50;
@@ -386,7 +385,6 @@ export default function Home() {
     let newCoupons = [...(user.myCoupons || [])];
     let createdCoupon: RedeemedCoupon | null = null;
 
-    // 쿠폰류 당첨 판별 (음료/경품/스낵/후광)
     let couponIcon = "🎁";
     let couponCode = "PQ-ROULETTE-" + Math.floor(1000 + Math.random() * 9000);
 
@@ -396,7 +394,6 @@ export default function Home() {
     else if (rewardName.includes("후광")) couponIcon = "👑";
 
     if (!bonusPoints) {
-      // 쿠폰 상품 당첨!
       createdCoupon = {
         id: "cp_roulette_" + Date.now(),
         rewardId: "rw_roulette_" + Date.now(),
@@ -419,7 +416,6 @@ export default function Home() {
     setGuests((prev) => prev.map((g) => (g.id === updatedUser.id ? updatedUser : g)));
     localStorage.setItem("partyquest_user", JSON.stringify(updatedUser));
 
-    // 방명록에 당첨 등재
     handleAddGuestbookEntry({
       fromUser: user.nickname,
       fromRole: user.role,
@@ -427,7 +423,6 @@ export default function Home() {
       sticker: "🎲",
     });
 
-    // 쿠폰 당첨인 경우 즉시 QR코드 모달 팝업 출동!
     if (createdCoupon) {
       setRouletteWonCouponModal(createdCoupon);
     }
@@ -481,12 +476,13 @@ export default function Home() {
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         onEditProfile={() => setIsOnboardingOpen(true)}
+        onOpenWallet={() => setIsWalletOpen(true)}
         activeGuestsCount={partyInfo.activeGuestsCount}
       />
 
       {/* 메인 컨텐츠 영역 */}
       <div className="max-w-5xl w-full mx-auto px-4 py-6">
-        {/* 파티 배너 & 공지 & 룰렛/후원/나만의 퀘스트 퀵 버튼 */}
+        {/* 파티 배너 & 공지 & 룰렛/후원/마이월렛/나만의 퀘스트 퀵 버튼 */}
         <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-purple-900/60 via-slate-900/80 to-pink-900/60 border border-purple-500/30 p-6 sm:p-8 mb-6 shadow-2xl">
           <div className="absolute top-0 right-0 w-64 h-64 bg-pink-500/10 rounded-full blur-3xl pointer-events-none" />
           <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -504,11 +500,19 @@ export default function Home() {
 
             <div className="flex flex-wrap items-center gap-2">
               <button
+                onClick={() => setIsWalletOpen(true)}
+                className="px-3.5 py-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:opacity-90 active:scale-95 text-slate-950 rounded-2xl text-xs font-black shadow-lg shadow-cyan-500/20 flex items-center gap-1.5 cursor-pointer"
+              >
+                <Ticket className="w-4 h-4 text-slate-950" />
+                <span>🎟️ 마이월렛 ({user?.myCoupons?.filter((c) => !c.isUsed).length || 0})</span>
+              </button>
+
+              <button
                 onClick={() => setIsCreateQuestOpen(true)}
                 className="px-3.5 py-2 bg-gradient-to-r from-amber-400 to-orange-500 hover:opacity-90 active:scale-95 text-slate-950 rounded-2xl text-xs font-black shadow-lg shadow-amber-500/20 flex items-center gap-1.5 cursor-pointer"
               >
                 <PlusCircle className="w-4 h-4 text-slate-950" />
-                <span>+ 퀘스트 만들기</span>
+                <span>+ 퀘스트</span>
               </button>
 
               <button
@@ -612,6 +616,14 @@ export default function Home() {
         isOpen={!!rouletteWonCouponModal}
         onClose={() => setRouletteWonCouponModal(null)}
         coupons={rouletteWonCouponModal ? [rouletteWonCouponModal] : []}
+        onToggleUseCoupon={handleToggleUseCoupon}
+      />
+
+      {/* 글로벌 마이월렛 쿠폰 보관함 모달 */}
+      <MyCouponWalletModal
+        isOpen={isWalletOpen}
+        onClose={() => setIsWalletOpen(false)}
+        coupons={user?.myCoupons || []}
         onToggleUseCoupon={handleToggleUseCoupon}
       />
 
