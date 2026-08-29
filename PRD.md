@@ -120,6 +120,9 @@
 - [x] **Task 24**: 모바일/데스크톱 통합 🏠 파티 홈(Home) 탭 추가 및 홈 바로가기 UX 접근성 최적화 (Header.tsx & page.tsx)
 - [x] **Task 25**: 디폴트 진입점을 파티 탐색/개최 랜딩 홈으로 일원화 및 초대 링크(?partyId=...) 전용 파티룸 진입 플로우 완성 (page.tsx)
 - [x] **Task 26**: QR코드 상세 보기 모달 중첩 닫기 X 버튼 중복 제거 및 UI 깔끔 단일화 (MyCouponWalletModal.tsx, CreatePartyModal.tsx, page.tsx)
+- [x] **Task 27**: 메인 플랫폼 메인 홈페이지 vs 개별 파티 룸 페이지 메뉴 & 아키텍처 책임 100% 완벽 분리 (MainPlatformHeader.tsx, PartyRoomHeader.tsx, page.tsx)
+
+
 
 
 

@@ -146,7 +146,14 @@ Model: Agentic Development Loop
 - QR 상세 모달 닫기 X 버튼 단일화 및 모달 UX 깔끔 정돈
 - 빌드 검증: next build 성공
 
+[TASK 27 COMPLETE]
+- MainPlatformHeader 컴포넌트 생성 (플랫폼 홈 전용 헤더: 🔥 파티 탐색 / 🎟️ 내 참여 파티 / 🎉 파티 개설 / 🎫 마이월렛)
+- PartyRoomHeader 컴포넌트 생성 (개별 파티룸 전용 헤더: [← 파티 목록 홈으로 나가기] & 📱 초대 QR & 5대 인터랙티브 게임 탭)
+- page.tsx 내 랜딩 홈 모드 vs 개별 파티 룸 모드의 아키텍처 및 메뉴/기능 책임 100% 완벽 분리
+- 빌드 검증: next build 성공
+
 ALL TASKS COMPLETE
+
 
 
 
