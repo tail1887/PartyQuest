@@ -12,13 +12,21 @@ interface LuckyRouletteModalProps {
   onSpinSuccess: (rewardName: string, bonusPoints?: number) => void;
 }
 
-const ROULETTE_ITEMS = [
-  { name: "🍹 음료 1잔 무료 교환권", shortName: "🍹 음료 1잔", color: "from-pink-500 to-rose-500" },
-  { name: "✨ bonus +100 포인트!", shortName: "✨ +100 P", color: "from-amber-400 to-yellow-300", points: 100 },
-  { name: "🎟️ 럭키드로우 경품 응모권", shortName: "🎟️ 경품 응모", color: "from-purple-500 to-indigo-500" },
-  { name: "👑 황금 네온 후광 스킨", shortName: "👑 황금 후광", color: "from-amber-300 via-orange-400 to-pink-500" },
-  { name: "🍕 핑거푸드 무료 스낵 쿠폰", shortName: "🍕 무료 스낵", color: "from-emerald-400 to-teal-500" },
-  { name: "⚡️ bonus +50 포인트!", shortName: "⚡️ +50 P", color: "from-cyan-400 to-blue-500", points: 50 },
+interface RouletteItem {
+  name: string;
+  shortName: string;
+  color1: string;
+  color2: string;
+  points?: number;
+}
+
+const ROULETTE_ITEMS: RouletteItem[] = [
+  { name: "🍹 음료 1잔 무료 교환권", shortName: "🍹 음료 1잔", color1: "#ec4899", color2: "#f43f5e" },
+  { name: "✨ bonus +100 포인트!", shortName: "✨ +100 P", color1: "#fbbf24", color2: "#f59e0b", points: 100 },
+  { name: "🎟️ 럭키드로우 경품 응모권", shortName: "🎟️ 경품 응모", color1: "#a855f7", color2: "#6366f1" },
+  { name: "👑 황금 네온 후광 스킨", shortName: "👑 황금 후광", color1: "#f59e0b", color2: "#ec4899" },
+  { name: "🍕 핑거푸드 무료 스낵 쿠폰", shortName: "🍕 무료 스낵", color1: "#34d399", color2: "#14b8a6" },
+  { name: "⚡️ bonus +50 포인트!", shortName: "⚡️ +50 P", color1: "#22d3ee", color2: "#3b82f6", points: 50 },
 ];
 
 export default function LuckyRouletteModal({
@@ -28,7 +36,7 @@ export default function LuckyRouletteModal({
   onSpinSuccess,
 }: LuckyRouletteModalProps) {
   const [spinning, setSpinning] = useState(false);
-  const [result, setResult] = useState<typeof ROULETTE_ITEMS[0] | null>(null);
+  const [result, setResult] = useState<RouletteItem | null>(null);
   const [rotation, setRotation] = useState(0);
 
   if (!isOpen) return null;
@@ -42,12 +50,17 @@ export default function LuckyRouletteModal({
     setSpinning(true);
     setResult(null);
 
-    // 랜덤 각도 계산 (최소 5바퀴 + 랜덤 항목)
-    const randomIndex = Math.floor(Math.random() * ROULETTE_ITEMS.length);
-    const itemDegree = 360 / ROULETTE_ITEMS.length;
-    // 화살표가 12시 방향을 가리키므로 각도 보정
-    const newDegree = rotation + 1800 + (360 - randomIndex * itemDegree);
+    // 6개 조각 (조각당 60도)
+    const numItems = ROULETTE_ITEMS.length;
+    const sliceAngle = 360 / numItems;
+    const randomIndex = Math.floor(Math.random() * numItems);
 
+    // 12시 방향 화살표에 당첨 항목의 중앙선이 오도록 보정
+    // index i의 중앙선 각도는 i * 60 + 30 도
+    const targetMidAngle = randomIndex * sliceAngle + sliceAngle / 2;
+    const stopAngle = 360 - targetMidAngle;
+
+    const newDegree = rotation + 1800 + (stopAngle - (rotation % 360));
     setRotation(newDegree);
 
     setTimeout(() => {
@@ -57,6 +70,23 @@ export default function LuckyRouletteModal({
       triggerConfetti();
       onSpinSuccess(wonItem.name, wonItem.points);
     }, 3500);
+  };
+
+  // SVG 부채꼴 path 생성 유틸리티
+  const getSlicePath = (index: number, total: number, radius: number) => {
+    const angle = 360 / total;
+    const startAngle = index * angle;
+    const endAngle = (index + 1) * angle;
+
+    const startRad = ((startAngle - 90) * Math.PI) / 180;
+    const endRad = ((endAngle - 90) * Math.PI) / 180;
+
+    const x1 = radius + radius * Math.cos(startRad);
+    const y1 = radius + radius * Math.sin(startRad);
+    const x2 = radius + radius * Math.cos(endRad);
+    const y2 = radius + radius * Math.sin(endRad);
+
+    return `M ${radius} ${radius} L ${x1} ${y1} A ${radius} ${radius} 0 0 1 ${x2} ${y2} Z`;
   };
 
   return (
@@ -81,34 +111,65 @@ export default function LuckyRouletteModal({
 
         {/* 룰렛 그래픽 판 */}
         <div className="relative w-64 h-64 mx-auto mb-5 my-2 flex items-center justify-center">
-          {/* 화살표 포인터 */}
-          <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-20 w-0 h-0 border-l-[14px] border-l-transparent border-r-[14px] border-r-transparent border-t-[20px] border-t-party-pink drop-shadow-lg" />
+          {/* top 12시 방향 화살표 포인터 */}
+          <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-30 w-0 h-0 border-l-[14px] border-l-transparent border-r-[14px] border-r-transparent border-t-[20px] border-t-party-pink drop-shadow-xl" />
 
-          {/* 회전하는 룰렛 원판 */}
+          {/* SVG 회전 원판 */}
           <div
-            className="w-full h-full rounded-full border-4 border-purple-500/50 overflow-hidden shadow-2xl relative transition-all ease-out duration-[3500ms]"
+            className="w-full h-full rounded-full overflow-hidden shadow-2xl border-4 border-purple-500/50 transition-all ease-out duration-[3500ms]"
             style={{ transform: `rotate(${rotation}deg)` }}
           >
-            {ROULETTE_ITEMS.map((item, idx) => {
-              const angle = (360 / ROULETTE_ITEMS.length) * idx;
-              return (
-                <div
-                  key={idx}
-                  className={`absolute w-1/2 h-1/2 top-0 right-0 origin-bottom-left flex items-center justify-center p-3 bg-gradient-to-tr ${item.color} text-slate-950 font-black text-center shadow-inner`}
-                  style={{
-                    transform: `rotate(${angle}deg)`,
-                  }}
-                >
-                  <span className="transform -rotate-45 block text-xs tracking-tight whitespace-nowrap font-extrabold drop-shadow-sm">
+            <svg viewBox="0 0 240 240" className="w-full h-full">
+              <defs>
+                {ROULETTE_ITEMS.map((item, i) => (
+                  <linearGradient key={i} id={`grad-${i}`} x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor={item.color1} />
+                    <stop offset="100%" stopColor={item.color2} />
+                  </linearGradient>
+                ))}
+              </defs>
+
+              {/* 6개 파이 조각 렌더링 */}
+              {ROULETTE_ITEMS.map((item, i) => (
+                <path
+                  key={i}
+                  d={getSlicePath(i, 6, 120)}
+                  fill={`url(#grad-${i})`}
+                  stroke="#0F0C20"
+                  strokeWidth="2"
+                />
+              ))}
+
+              {/* 파이 조각 정중앙 텍스트 방사형 렌더링 */}
+              {ROULETTE_ITEMS.map((item, i) => {
+                const angle = 60 * i + 30; // 부채꼴 정중앙 각도
+                const rad = ((angle - 90) * Math.PI) / 180;
+                // 중심(120, 120)에서 반지름(120)의 약 62% 지점 (r = 75)
+                const textX = 120 + 75 * Math.cos(rad);
+                const textY = 120 + 75 * Math.sin(rad);
+
+                return (
+                  <text
+                    key={i}
+                    x={textX}
+                    y={textY}
+                    fill="#0F0C20"
+                    fontSize="11"
+                    fontWeight="900"
+                    textAnchor="middle"
+                    dominantBaseline="central"
+                    transform={`rotate(${angle + 90}, ${textX}, ${textY})`}
+                    className="select-none font-sans"
+                  >
                     {item.shortName}
-                  </span>
-                </div>
-              );
-            })}
+                  </text>
+                );
+              })}
+            </svg>
           </div>
 
           {/* 중앙 파티 뱃지 아이콘 */}
-          <div className="absolute w-12 h-12 rounded-full bg-slate-950 border-2 border-purple-400 flex items-center justify-center text-lg z-10 shadow-xl">
+          <div className="absolute w-12 h-12 rounded-full bg-slate-950 border-2 border-purple-400 flex items-center justify-center text-lg z-20 shadow-2xl">
             🎰
           </div>
         </div>
