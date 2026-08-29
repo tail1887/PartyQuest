@@ -130,7 +130,13 @@ Model: Agentic Development Loop
 - 헤더 내 [🏠 파티 목록 홈] & [📱 파티 초대 QR] 핫키 탑재
 - 빌드 검증: next build 성공
 
+[TASK 24 COMPLETE]
+- Header.tsx 내 ActiveTab에 "home" 탭 추가 및 메인 네비게이션 탭 가장 첫번째 자리에 🏠 파티 홈 버튼 상시 노출
+- 모바일 및 데스크톱에서 PartyQuest 로고 및 파티 홈 버튼 터치 시 파티 랜딩 피드로 즉시 전환
+- 빌드 검증: next build 성공
+
 ALL TASKS COMPLETE
+
 
 
 
