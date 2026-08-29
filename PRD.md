@@ -115,6 +115,9 @@
 - [x] **Task 19**: 프리셋 파티 퀘스트 실체적 사진 인증(Photo Verification) & 실기 입력 강화 (presetQuests.ts & QuestCard.tsx)
 - [x] **Task 20**: 메인 파티 배너 중복 마이월렛 버튼 제거 및 배너 퀵 액션 버튼 UI 정리 (page.tsx)
 - [x] **Task 21**: 프로덕션 서비스용 JudgeQuickBanner 배너 완전히 제거하여 상용 앱 완성도 확보 (page.tsx)
+- [x] **Task 22**: 방명록 피드 내 💌 파티 응원 메시지 vs 🎯 퀘스트 인증 메시지 구분 뱃지 및 필터 태깅 구현 (types/party.ts & NetworkingWall.tsx)
+
+
 
 
 

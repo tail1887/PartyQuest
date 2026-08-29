@@ -63,6 +63,7 @@ export interface GuestbookEntry {
   message: string;
   sticker: string;
   createdAt: string;
+  tag?: "CHEER" | "QUEST_PROOF";
 }
 
 export interface PhotoFeedEntry {

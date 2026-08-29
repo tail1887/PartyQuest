@@ -117,7 +117,14 @@ Model: Agentic Development Loop
 - 실제 서비스 앱 룩앤필 확보
 - 빌드 검증: next build 성공
 
+[TASK 22 COMPLETE]
+- GuestbookEntry 데이터 타입에 tag: "CHEER" | "QUEST_PROOF" 분류 속성 추가
+- NetworkingWall 방명록 피드에 💌 파티 응원 vs 🎯 퀘스트 인증 태그 뱃지 시각화
+- 방명록 필터 칩 (전체 / 💌 응원 메시지 / 🎯 퀘스트 인증) 지원
+- 빌드 검증: next build 성공
+
 ALL TASKS COMPLETE
+
 
 
 
