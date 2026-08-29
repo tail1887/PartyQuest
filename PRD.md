@@ -112,6 +112,9 @@
 - [x] **Task 16**: 네트워킹 월 내 📸 실시간 파티 퀘스트 인증샷 피드(Party Photo Feed) & 스티커 리액션 기능 구현
 - [x] **Task 17**: 구매/교환한 쿠폰 QR코드 보관함(My Coupon Wallet) & 다시보기 기능 구현 (MyCouponWalletModal.tsx)
 - [x] **Task 18**: 네트워킹 월 이모지 토글/취소(-1/+1) 및 룰렛 당첨 쿠폰 QR 자동 발급/보관함 연동 (NetworkingWall.tsx & LuckyRouletteModal.tsx)
+- [x] **Task 19**: 프리셋 파티 퀘스트 실체적 사진 인증(Photo Verification) & 실기 입력 강화 (presetQuests.ts & QuestCard.tsx)
+
+
 
 
 

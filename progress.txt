@@ -101,7 +101,14 @@ Model: Agentic Development Loop
 - 룰렛 당첨 시 쿠폰 내 보관함 자동 저장 & 바코드/QR코드 당첨 모달 자동 팝업 연동
 - 빌드 검증: next build 성공
 
+[TASK 19 COMPLETE]
+- presetQuests.ts 기본 퀘스트들의 실체적 인증 업그레이드 (호스트 셀카 찍기 📸, 스낵바 음료 마시기 🍹 등 type: "photo" 전환)
+- QuestCard.tsx 카메라/갤러리 사진 미첨부 시 제한 및 사진 미리보기 업로드 폼 필수화
+- 사진 인증 완료 시 커뮤니티 월 피드로 자동 공유 연동
+- 빌드 검증: next build 성공
+
 ALL TASKS COMPLETE
+
 
 
 
