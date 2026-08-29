@@ -94,7 +94,7 @@
 
 ## 6. 에이전트 개발 태스크 목록 (Task List)
 
-- [ ] **Task 1**: Next.js + Tailwind CSS + Lucide Icons 프로젝트 셋업 및 기본 레이아웃 구성
+- [x] **Task 1**: Next.js + Tailwind CSS + Lucide Icons 프로젝트 셋업 및 기본 레이아웃 구성
 - [ ] **Task 2**: 파티 테마 디자인 토큰 및 온보딩/닉네임 간편 입장 모달 구현
 - [ ] **Task 3**: 기본 퀘스트 프리셋 데이터 구조 설계 및 퀘스트 카드 목록 UI 구현
 - [ ] **Task 4**: 퀘스트 수행, 키워드 입력 및 원클릭 완료 인증 + Confetti 축하 인터랙션 구현
