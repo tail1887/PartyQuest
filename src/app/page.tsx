@@ -9,6 +9,7 @@ import Leaderboard from "@/components/Leaderboard";
 import RewardStore from "@/components/RewardStore";
 import HostDashboard from "@/components/HostDashboard";
 import QuestSuccessModal from "@/components/QuestSuccessModal";
+import JudgeQuickBanner from "@/components/JudgeQuickBanner";
 import { UserProfile, PartyInfo, Quest, GuestbookEntry, RewardItem } from "@/types/party";
 import { PRESET_QUESTS } from "@/data/presetQuests";
 import { MOCK_GUESTS, INITIAL_GUESTBOOK } from "@/data/mockGuests";
@@ -69,6 +70,21 @@ export default function Home() {
     setGuests((prev) => [newUser, ...prev.filter((g) => g.id !== newUser.id)]);
     setIsOnboardingOpen(false);
     triggerConfetti();
+  };
+
+  const handleQuickSetup = (judgeUser: UserProfile) => {
+    setUser(judgeUser);
+    setGuests((prev) => [judgeUser, ...prev.filter((g) => g.id !== judgeUser.id)]);
+    setIsOnboardingOpen(false);
+
+    // Q1, Q2 자동 완료 연동
+    setQuests((prev) =>
+      prev.map((q) =>
+        q.id === "quest_1" || q.id === "quest_2"
+          ? { ...q, completed: true, completedAt: new Date().toISOString() }
+          : q
+      )
+    );
   };
 
   // 퀘스트 완료 처리 + Confetti 폭죽 + 성공 모달
@@ -166,6 +182,9 @@ export default function Home() {
 
   return (
     <main className="min-h-screen flex flex-col pb-20">
+      {/* 심사관 원클릭 퀵 데모 배너 */}
+      <JudgeQuickBanner onQuickSetup={handleQuickSetup} />
+
       {/* 헤더 & 네비게이션 */}
       <Header
         user={user}

@@ -44,6 +44,13 @@ Model: Agentic Development Loop
 - 커스텀 퀘스트 즉석 생성 & 삭제 관리 폼 연동
 - 빌드 검증: next build 성공
 
+[TASK 8 COMPLETE]
+- Playwright 심사관 전용 시나리오 가이드 작성 (doc/playwright_test_guide.md)
+- 심사관 원클릭 퀵 데모 배너 구현 (JudgeQuickBanner.tsx)
+- 모바일/데스크톱 반응형 레이아웃 및 UX 오작동 방지 라벨링 최적화
+- 빌드 검증: next build 성공
+
+
 
 
 
