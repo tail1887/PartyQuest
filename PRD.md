@@ -129,6 +129,9 @@
 - [x] **Task 33**: [진범 버그 해결] Header.tsx 구형 6대 탭 잔존 코드 및 page.tsx 구형 <Header> 호출 제거하여 랜딩 헤더 vs 파티룸 헤더 100% 완전 전면 교체 (Header.tsx & page.tsx)
 - [x] **Task 34**: [브라우저 Service Worker/Cache Storage 강제 박멸] 클라이언트 자가 복구 캐시 정화 스크립트 탑재 (page.tsx)
 - [x] **Task 35**: 개별 파티 룸 히어로 배너 내 중복 📱 초대 QR 버튼 제거 (page.tsx)
+- [x] **Task 36**: 파티 룸 상단 헤더 우측 [📱 초대 QR] 버튼 100% 전면 삭제 및 UI 단일화 (PartyRoomHeader.tsx)
+
+
 
 
 
