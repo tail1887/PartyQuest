@@ -185,7 +185,13 @@ Model: Agentic Development Loop
 - MainPlatformHeader (플랫폼 랜딩용 2대 탭) vs PartyRoomHeader (파티룸 게임용 4/5대 탭)로 100% 깔끔 교체 완료
 - 빌드 검증: next build 성공
 
+[TASK 34 COMPLETE]
+- 브라우저 Service Worker & Cache Storage 자동 해제/정화 스크립트(page.tsx) 탑재
+- 유저 브라우저에 가둬졌던 구형 PWA/Asset 캐시를 기술적으로 100% 자동 박멸
+- 빌드 검증: next build 성공
+
 ALL TASKS COMPLETE
+
 
 
 
