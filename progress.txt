@@ -70,8 +70,13 @@ Model: Agentic Development Loop
 - GTM 33% 및 BM 33% 강조 1분 30초 피칭 발표 스크립트 작성 (doc/speech_script.md)
 - 빌드 검증: next build 성공
 
+[TASK 13 COMPLETE]
+- Playwright E2E 자동화 테스트 스크립트 작성 (tests/e2e.spec.ts)
+- 온보딩 ➔ 퀘스트 ➔ 방명록 ➔ 리더보드 ➔ 리워드 ➔ 호스트 5단계 사용자 흐름 무결성 검증
+- 프로덕션 빌드 성공
 
 ALL TASKS COMPLETE
+
 
 
 
