@@ -135,7 +135,14 @@ Model: Agentic Development Loop
 - 모바일 및 데스크톱에서 PartyQuest 로고 및 파티 홈 버튼 터치 시 파티 랜딩 피드로 즉시 전환
 - 빌드 검증: next build 성공
 
+[TASK 25 COMPLETE]
+- page.tsx 내 isLandingMode 기본값을 true로 설정하여 메인 접속 시 무조건 파티 탐색/개최 랜딩 홈이 기본 화면으로 열림
+- 초대 링크 파라미터(?partyId=...)가 유효한 경우에만 지정된 파티 게임룸으로 자동 진입
+- 파티 탐색/개최/입장 서비스 플로우 100% 완성
+- 빌드 검증: next build 성공
+
 ALL TASKS COMPLETE
+
 
 
 
