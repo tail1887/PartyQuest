@@ -131,6 +131,9 @@
 - [x] **Task 35**: 개별 파티 룸 히어로 배너 내 중복 📱 초대 QR 버튼 제거 (page.tsx)
 - [x] **Task 36**: 파티 룸 상단 헤더 우측 [📱 초대 QR] 버튼 100% 전면 삭제 및 UI 단일화 (PartyRoomHeader.tsx)
 - [x] **Task 37**: [해커톤 점수 극대화 시나리오] 심사위원 원클릭 3초 데모 체험 바(Judge Demo Bar) & 럭키드로우 추첨 클라이맥스 탑재 (page.tsx & PartyRoomHeader.tsx)
+- [x] **Task 38**: 해커톤 제출용 완성 문서(doc/submission.md) 및 웹사이트 내 [📋 제출 기획안 모달] 팝업 연동 (submission.md & page.tsx)
+
+
 
 
 
