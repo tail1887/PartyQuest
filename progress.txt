@@ -107,7 +107,13 @@ Model: Agentic Development Loop
 - 사진 인증 완료 시 커뮤니티 월 피드로 자동 공유 연동
 - 빌드 검증: next build 성공
 
+[TASK 20 COMPLETE]
+- 메인 파티 배너 중복 마이월렛 버튼 제거 (+ 퀘스트, 🎰 룰렛, 👑 후원 3개 버튼 정리)
+- 상단 헤더 우측 🎟️ 마이월렛 [미사용 쿠폰 수] 단일 핫키 버튼으로 유저 동선 일원화
+- 빌드 검증: next build 성공
+
 ALL TASKS COMPLETE
+
 
 
 

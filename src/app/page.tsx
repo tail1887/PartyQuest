@@ -20,7 +20,7 @@ import { MOCK_GUESTS, INITIAL_GUESTBOOK } from "@/data/mockGuests";
 import { MOCK_REWARDS } from "@/data/mockRewards";
 import { INITIAL_PHOTO_FEED } from "@/data/mockPhotoFeed";
 import { triggerConfetti } from "@/utils/confetti";
-import { Flame, ArrowRight, Dices, Crown, PlusCircle, Ticket } from "lucide-react";
+import { Flame, ArrowRight, Dices, Crown, PlusCircle } from "lucide-react";
 
 export default function Home() {
   const [user, setUser] = useState<UserProfile | null>(null);
@@ -482,7 +482,7 @@ export default function Home() {
 
       {/* 메인 컨텐츠 영역 */}
       <div className="max-w-5xl w-full mx-auto px-4 py-6">
-        {/* 파티 배너 & 공지 & 룰렛/후원/마이월렛/나만의 퀘스트 퀵 버튼 */}
+        {/* 파티 배너 & 공지 & 룰렛/후원/나만의 퀘스트 퀵 버튼 */}
         <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-purple-900/60 via-slate-900/80 to-pink-900/60 border border-purple-500/30 p-6 sm:p-8 mb-6 shadow-2xl">
           <div className="absolute top-0 right-0 w-64 h-64 bg-pink-500/10 rounded-full blur-3xl pointer-events-none" />
           <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -500,19 +500,11 @@ export default function Home() {
 
             <div className="flex flex-wrap items-center gap-2">
               <button
-                onClick={() => setIsWalletOpen(true)}
-                className="px-3.5 py-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:opacity-90 active:scale-95 text-slate-950 rounded-2xl text-xs font-black shadow-lg shadow-cyan-500/20 flex items-center gap-1.5 cursor-pointer"
-              >
-                <Ticket className="w-4 h-4 text-slate-950" />
-                <span>🎟️ 마이월렛 ({user?.myCoupons?.filter((c) => !c.isUsed).length || 0})</span>
-              </button>
-
-              <button
                 onClick={() => setIsCreateQuestOpen(true)}
                 className="px-3.5 py-2 bg-gradient-to-r from-amber-400 to-orange-500 hover:opacity-90 active:scale-95 text-slate-950 rounded-2xl text-xs font-black shadow-lg shadow-amber-500/20 flex items-center gap-1.5 cursor-pointer"
               >
                 <PlusCircle className="w-4 h-4 text-slate-950" />
-                <span>+ 퀘스트</span>
+                <span>+ 퀘스트 만들기</span>
               </button>
 
               <button
