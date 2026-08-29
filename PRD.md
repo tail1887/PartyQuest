@@ -133,6 +133,9 @@
 - [x] **Task 37**: [해커톤 점수 극대화 시나리오] 심사위원 원클릭 3초 데모 체험 바(Judge Demo Bar) & 럭키드로우 추첨 클라이맥스 탑재 (page.tsx & PartyRoomHeader.tsx)
 - [x] **Task 38**: 해커톤 제출용 완성 문서(doc/submission.md) 및 웹사이트 내 [📋 제출 기획안 모달] 팝업 연동 (submission.md & page.tsx)
 - [x] **Task 39**: [제출 평가 점수 7대 보강 완수] 모바일 오버플로/입장 이동, 룰렛 연동, 누적 랭킹 분리 & GTM/가격/TAM/경쟁비교 4대 비즈니스 문서 작성 (types, Leaderboard, page.tsx, doc/submission.md)
+- [x] **Task 40**: 참고 문서 양식 100% 이식 발표 기술 문서 및 화면별 릴레이 발표 스크립트 작성 (doc/presentation.md)
+
+
 
 
 
