@@ -7,6 +7,7 @@ import QuestList from "@/components/QuestList";
 import NetworkingWall from "@/components/NetworkingWall";
 import Leaderboard from "@/components/Leaderboard";
 import RewardStore from "@/components/RewardStore";
+import HostDashboard from "@/components/HostDashboard";
 import QuestSuccessModal from "@/components/QuestSuccessModal";
 import { UserProfile, PartyInfo, Quest, GuestbookEntry, RewardItem } from "@/types/party";
 import { PRESET_QUESTS } from "@/data/presetQuests";
@@ -125,7 +126,7 @@ export default function Home() {
     }
   };
 
-  // 리워드 교환 핸들러 (포인트 차감 및 수량 감소)
+  // 리워드 교환 핸들러
   const handleRedeemReward = (reward: RewardItem) => {
     if (!user || user.points < reward.pointsRequired) return;
 
@@ -146,6 +147,21 @@ export default function Home() {
           : r
       )
     );
+  };
+
+  // 호스트 기능: 새 퀘스트 추가
+  const handleAddQuest = (newQuestData: Omit<Quest, "id" | "completed">) => {
+    const newQuest: Quest = {
+      ...newQuestData,
+      id: "quest_custom_" + Date.now(),
+      completed: false,
+    };
+    setQuests((prev) => [newQuest, ...prev]);
+  };
+
+  // 호스트 기능: 퀘스트 삭제
+  const handleDeleteQuest = (questId: string) => {
+    setQuests((prev) => prev.filter((q) => q.id !== questId));
   };
 
   return (
@@ -225,14 +241,14 @@ export default function Home() {
         )}
 
         {activeTab === "host" && (
-          <div className="bg-party-card border border-purple-500/20 rounded-3xl p-6 sm:p-8 shadow-xl">
-            <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
-              ⚙️ 호스트 파티 관리자 모드
-            </h3>
-            <p className="text-xs text-slate-400">
-              파티 정보와 퀘스트를 실시간으로 커스텀하세요! (Task 7 구현 예정)
-            </p>
-          </div>
+          <HostDashboard
+            partyInfo={partyInfo}
+            onUpdatePartyInfo={setPartyInfo}
+            quests={quests}
+            onAddQuest={handleAddQuest}
+            onDeleteQuest={handleDeleteQuest}
+            guestCount={guests.length}
+          />
         )}
       </div>
 
