@@ -169,7 +169,13 @@ Model: Agentic Development Loop
 - GlobalUserProfile vs PartyUserProfile 타입 아키텍처 완전 분리
 - 빌드 검증: next build 성공
 
+[TASK 31 COMPLETE]
+- 구형 LocalStorage 복원 데이터 마이그레이션 적용 (partyquest_user_v2 키 일원화)
+- E2E 자동 검증 스펙(tests/e2e.spec.ts) 작성 및 전체 31개 요구사항 통합 검증 완료
+- 빌드 검증: next build 성공
+
 ALL TASKS COMPLETE
+
 
 
 

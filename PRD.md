@@ -124,6 +124,9 @@
 - [x] **Task 28**: 스크린샷 제보 탭 메뉴 시각적 정돈 (메인 홈 탭 메뉴 vs 파티 룸 5대 탭 완벽 분리 및 🏠 파티 홈 탭 중복 제거)
 - [x] **Task 29**: Next.js force-dynamic 캐시 무력화 및 랜딩 모드 초기 가드 강화로 브라우저 구버전 메뉴 캐시 100% 갱신 (page.tsx)
 - [x] **Task 30**: 호스트 vs 일반 참가자 탭 권한 분리(⚙️ 호스트 탭 은닉/노출) & 글로벌 서비스 계정 vs 파티 전용 프로필 아키텍처 분리 (PartyRoomHeader.tsx, types/party.ts, page.tsx)
+- [x] **Task 31**: 구형 로컬스토리지 복원 부작용 방지 & 플레이라이트(Playwright) E2E 시나리오 실기 자동 검증 완수 (tests/e2e.spec.ts & page.tsx)
+
+
 
 
 
