@@ -4,9 +4,11 @@ import React, { useState, useEffect } from "react";
 import Header, { ActiveTab } from "@/components/Header";
 import OnboardingModal from "@/components/OnboardingModal";
 import QuestList from "@/components/QuestList";
+import NetworkingWall from "@/components/NetworkingWall";
 import QuestSuccessModal from "@/components/QuestSuccessModal";
-import { UserProfile, PartyInfo, Quest } from "@/types/party";
+import { UserProfile, PartyInfo, Quest, GuestbookEntry } from "@/types/party";
 import { PRESET_QUESTS } from "@/data/presetQuests";
+import { MOCK_GUESTS, INITIAL_GUESTBOOK } from "@/data/mockGuests";
 import { triggerConfetti } from "@/utils/confetti";
 import { Flame, ArrowRight } from "lucide-react";
 
@@ -15,6 +17,8 @@ export default function Home() {
   const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<ActiveTab>("quests");
   const [quests, setQuests] = useState<Quest[]>(PRESET_QUESTS);
+  const [guests, setGuests] = useState<UserProfile[]>(MOCK_GUESTS);
+  const [guestbook, setGuestbook] = useState<GuestbookEntry[]>(INITIAL_GUESTBOOK);
   const [completedQuestModalData, setCompletedQuestModalData] = useState<Quest | null>(null);
   const [partyInfo, setPartyInfo] = useState<PartyInfo>({
     name: "2026 I/O Extended: Hack the Beat Networking Party",
@@ -31,6 +35,12 @@ export default function Home() {
       try {
         const parsedUser: UserProfile = JSON.parse(savedUser);
         setUser(parsedUser);
+
+        // 게스트 목록에 내 프로필 추가/동기화
+        setGuests((prev) => {
+          const filtered = prev.filter((g) => g.id !== parsedUser.id);
+          return [parsedUser, ...filtered];
+        });
 
         // 유저 완료 퀘스트 동기화
         if (parsedUser.completedQuestIds && parsedUser.completedQuestIds.length > 0) {
@@ -51,6 +61,7 @@ export default function Home() {
 
   const handleOnboardingComplete = (newUser: UserProfile) => {
     setUser(newUser);
+    setGuests((prev) => [newUser, ...prev.filter((g) => g.id !== newUser.id)]);
     setIsOnboardingOpen(false);
     triggerConfetti();
   };
@@ -82,12 +93,32 @@ export default function Home() {
         completedQuestIds: [...user.completedQuestIds, questId],
       };
       setUser(updatedUser);
+      setGuests((prev) =>
+        prev.map((g) => (g.id === updatedUser.id ? updatedUser : g))
+      );
       localStorage.setItem("partyquest_user", JSON.stringify(updatedUser));
     }
 
     // 폭죽 효과 및 모달 오픈
     triggerConfetti();
     setCompletedQuestModalData(targetQuest);
+  };
+
+  // 방명록 작성 처리 및 Q4 퀘스트 자동 완료 연동
+  const handleAddGuestbookEntry = (entry: Omit<GuestbookEntry, "id" | "createdAt">) => {
+    const newGb: GuestbookEntry = {
+      ...entry,
+      id: "gb_" + Date.now(),
+      createdAt: "방금 전",
+    };
+    setGuestbook((prev) => [newGb, ...prev]);
+    triggerConfetti();
+
+    // Q4 미션 자동 완료 연동
+    const q4 = quests.find((q) => q.id === "quest_4");
+    if (q4 && !q4.completed) {
+      handleCompleteQuest("quest_4", `"${entry.message}" 남김 (${entry.sticker})`);
+    }
   };
 
   return (
@@ -141,14 +172,13 @@ export default function Home() {
         )}
 
         {activeTab === "networking" && (
-          <div className="bg-party-card border border-purple-500/20 rounded-3xl p-6 sm:p-8 shadow-xl">
-            <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
-              🤝 참가자 네트워킹 월
-            </h3>
-            <p className="text-xs text-slate-400">
-              파티 참가자들의 프로필을 보고 응원 방명록을 남겨보세요! (Task 5 구현 예정)
-            </p>
-          </div>
+          <NetworkingWall
+            currentUser={user}
+            guests={guests}
+            guestbook={guestbook}
+            onAddGuestbookEntry={handleAddGuestbookEntry}
+            onOpenOnboarding={() => setIsOnboardingOpen(true)}
+          />
         )}
 
         {activeTab === "leaderboard" && (

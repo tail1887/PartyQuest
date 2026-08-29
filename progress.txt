@@ -27,6 +27,13 @@ Model: Agentic Development Loop
 - 퀘스트 완료 시 LocalStorage 포인트/완료 목록 실시간 영구 동기화
 - 빌드 검증: next build 성공
 
+[TASK 5 COMPLETE]
+- 목업 게스트 6인 및 초기 방명록 데이터 설계 (src/data/mockGuests.ts)
+- NetworkingWall 컴포넌트 구현 (참가자 카드 그리드, SNS 링크, 스티커/메시지 모달)
+- 실시간 파티 방명록 피드 구현 및 Q4 소셜 퀘스트 자동 완료 연동
+- 빌드 검증: next build 성공
+
+
 
 
 
