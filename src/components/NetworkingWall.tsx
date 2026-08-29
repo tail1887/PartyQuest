@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { UserProfile, GuestbookEntry, PhotoFeedEntry } from "@/types/party";
-import { Users, MessageSquare, Send, Instagram, Linkedin, Sparkles, Camera, Heart, Flame, ThumbsUp, PartyPopper } from "lucide-react";
+import { Users, MessageSquare, Send, Instagram, Linkedin, Sparkles, Camera, Heart, Flame, ThumbsUp, PartyPopper, SmilePlus } from "lucide-react";
 
 interface NetworkingWallProps {
   currentUser: UserProfile | null;
@@ -151,21 +151,44 @@ export default function NetworkingWall({
                 )}
               </div>
 
-              {/* 하단 스티커 리액션 버튼 */}
-              <div className="p-3 border-t border-purple-500/10 bg-slate-900/40 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
-                {REACTION_STICKERS.map((stk) => {
-                  const count = item.reactions[stk] || 0;
-                  return (
-                    <button
-                      key={stk}
-                      onClick={() => onReactPhotoFeed && onReactPhotoFeed(item.id, stk)}
-                      className="px-2.5 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-bold flex items-center gap-1 cursor-pointer transition active:scale-95"
-                    >
-                      <span>{stk}</span>
-                      <span className="text-[10px] text-purple-300 font-mono">{count}</span>
-                    </button>
-                  );
-                })}
+              {/* 하단 스티커 리액션 버튼 (토글 & 중복 방지 기능) */}
+              <div className="p-3 border-t border-purple-500/10 bg-slate-900/40 space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] text-slate-400 font-semibold flex items-center gap-1">
+                    <SmilePlus className="w-3 h-3 text-party-pink" /> 이모지 공감 남기기 (터치 시 토글)
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+                  {REACTION_STICKERS.map((stk) => {
+                    const count = item.reactions[stk] || 0;
+                    const isReacted = item.myReactions?.includes(stk);
+
+                    return (
+                      <button
+                        key={stk}
+                        onClick={() => {
+                          if (!currentUser) {
+                            onOpenOnboarding();
+                            return;
+                          }
+                          onReactPhotoFeed && onReactPhotoFeed(item.id, stk);
+                        }}
+                        className={`px-2.5 py-1 rounded-xl text-xs font-bold flex items-center gap-1 cursor-pointer transition active:scale-95 border ${
+                          isReacted
+                            ? "bg-party-purple/40 border-party-pink text-white shadow-md shadow-pink-500/20 scale-105"
+                            : "bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-300"
+                        }`}
+                        title={isReacted ? "이모지 반응 취소" : "이모지 반응 등록"}
+                      >
+                        <span>{stk}</span>
+                        <span className={`text-[10px] font-mono ${isReacted ? "text-party-pink font-black" : "text-purple-300"}`}>
+                          {count}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           ))}
@@ -213,7 +236,6 @@ export default function NetworkingWall({
                 </div>
 
                 <div>
-                  {/* SNS 링크 */}
                   <div className="flex items-center gap-2 mb-3">
                     {guest.instagram && (
                       <span className="inline-flex items-center gap-1 text-[11px] text-pink-400 bg-pink-950/40 px-2 py-0.5 rounded-md border border-pink-500/20">
@@ -244,13 +266,11 @@ export default function NetworkingWall({
       {/* 3. 실시간 파티 방명록 피드 뷰 */}
       {activeTab === "GUESTBOOK" && (
         <div className="space-y-6">
-          {/* 방명록 작성 폼 */}
           <div className="bg-slate-900/80 border border-purple-500/30 rounded-2xl p-5 shadow-xl">
             <h4 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-party-pink" /> 전체 파티 방명록 남기기
             </h4>
 
-            {/* 스티커 선택 */}
             <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2 mb-3">
               {STICKERS.map((stk) => (
                 <button
@@ -296,7 +316,6 @@ export default function NetworkingWall({
             </form>
           </div>
 
-          {/* 방명록 카드 리스트 */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {guestbook.map((gb) => (
               <div
@@ -324,7 +343,6 @@ export default function NetworkingWall({
         </div>
       )}
 
-      {/* 특정 게스트 대상 메시지 모달 */}
       {selectedGuest && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150">
           <div className="relative w-full max-w-md bg-party-card border border-purple-500/40 rounded-3xl p-6 shadow-2xl text-slate-100">

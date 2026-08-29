@@ -13,6 +13,7 @@ import JudgeQuickBanner from "@/components/JudgeQuickBanner";
 import LuckyRouletteModal from "@/components/LuckyRouletteModal";
 import SponsorModal from "@/components/SponsorModal";
 import CreateQuestModal from "@/components/CreateQuestModal";
+import MyCouponWalletModal from "@/components/MyCouponWalletModal";
 import { UserProfile, PartyInfo, Quest, GuestbookEntry, RewardItem, QuestSubmission, PhotoFeedEntry, RedeemedCoupon } from "@/types/party";
 import { PRESET_QUESTS } from "@/data/presetQuests";
 import { MOCK_GUESTS, INITIAL_GUESTBOOK } from "@/data/mockGuests";
@@ -34,6 +35,10 @@ export default function Home() {
   const [photoFeed, setPhotoFeed] = useState<PhotoFeedEntry[]>(INITIAL_PHOTO_FEED);
   const [rewards, setRewards] = useState<RewardItem[]>(MOCK_REWARDS);
   const [completedQuestModalData, setCompletedQuestModalData] = useState<Quest | null>(null);
+
+  // 룰렛 당첨 전용 QR 모달 상태
+  const [rouletteWonCouponModal, setRouletteWonCouponModal] = useState<RedeemedCoupon | null>(null);
+
   const [partyInfo, setPartyInfo] = useState<PartyInfo>({
     name: "2026 I/O Extended: Hack the Beat Networking Party",
     theme: "AI, Music & Tech Gathering 🌴",
@@ -50,13 +55,11 @@ export default function Home() {
         const parsedUser: UserProfile = JSON.parse(savedUser);
         setUser(parsedUser);
 
-        // 게스트 목록에 내 프로필 추가/동기화
         setGuests((prev) => {
           const filtered = prev.filter((g) => g.id !== parsedUser.id);
           return [parsedUser, ...filtered];
         });
 
-        // 유저 완료 퀘스트 동기화
         if (parsedUser.completedQuestIds && parsedUser.completedQuestIds.length > 0) {
           setQuests((prev) =>
             prev.map((q) => ({
@@ -85,7 +88,6 @@ export default function Home() {
     setGuests((prev) => [judgeUser, ...prev.filter((g) => g.id !== judgeUser.id)]);
     setIsOnboardingOpen(false);
 
-    // Q1, Q2 자동 완료 연동
     setQuests((prev) =>
       prev.map((q) =>
         q.id === "quest_1" || q.id === "quest_2"
@@ -271,7 +273,7 @@ export default function Home() {
     });
   };
 
-  // 리워드 교환 핸들러 (내 쿠폰 보관함에 저장)
+  // 리워드 교환 핸들러
   const handleRedeemReward = (reward: RewardItem) => {
     if (!user || user.points < reward.pointsRequired) return;
 
@@ -306,7 +308,7 @@ export default function Home() {
     );
   };
 
-  // 내 쿠폰 사용 완료 처리 토글
+  // 내 쿠폰 사용 완료 토글
   const handleToggleUseCoupon = (couponId: string) => {
     if (!user || !user.myCoupons) return;
 
@@ -323,20 +325,39 @@ export default function Home() {
     localStorage.setItem("partyquest_user", JSON.stringify(updatedUser));
   };
 
-  // 사진 피드 스티커 반응 누르기
+  // 사진 피드 이모지 스티커 반응 (토글 +1 / -1)
   const handleReactPhotoFeed = (feedId: string, sticker: string) => {
+    if (!user) return;
+
     setPhotoFeed((prev) =>
-      prev.map((item) =>
-        item.id === feedId
-          ? {
-              ...item,
-              reactions: {
-                ...item.reactions,
-                [sticker]: (item.reactions[sticker] || 0) + 1,
-              },
-            }
-          : item
-      )
+      prev.map((item) => {
+        if (item.id !== feedId) return item;
+
+        const myReactions = item.myReactions || [];
+        const isReacted = myReactions.includes(sticker);
+
+        let newMyReactions: string[];
+        let newCount: number;
+
+        if (isReacted) {
+          // 취소 (-1)
+          newMyReactions = myReactions.filter((s) => s !== sticker);
+          newCount = Math.max(0, (item.reactions[sticker] || 1) - 1);
+        } else {
+          // 등록 (+1)
+          newMyReactions = [...myReactions, sticker];
+          newCount = (item.reactions[sticker] || 0) + 1;
+        }
+
+        return {
+          ...item,
+          myReactions: newMyReactions,
+          reactions: {
+            ...item.reactions,
+            [sticker]: newCount,
+          },
+        };
+      })
     );
   };
 
@@ -356,25 +377,60 @@ export default function Home() {
     }
   };
 
-  // 룰렛 당첨 처리
+  // 🎰 룰렛 당첨 처리 (쿠폰 당첨 시 내 보관함 저장 및 QR 팝업 자동 연동!)
   const handleSpinSuccess = (rewardName: string, bonusPoints?: number) => {
     if (!user) return;
     const cost = 50;
-    const addedPoints = (bonusPoints || 0) - cost;
+    let addedPoints = (bonusPoints || 0) - cost;
+
+    let newCoupons = [...(user.myCoupons || [])];
+    let createdCoupon: RedeemedCoupon | null = null;
+
+    // 쿠폰류 당첨 판별 (음료/경품/스낵/후광)
+    let couponIcon = "🎁";
+    let couponCode = "PQ-ROULETTE-" + Math.floor(1000 + Math.random() * 9000);
+
+    if (rewardName.includes("음료")) couponIcon = "🍹";
+    else if (rewardName.includes("경품")) couponIcon = "🎟️";
+    else if (rewardName.includes("스낵")) couponIcon = "🍕";
+    else if (rewardName.includes("후광")) couponIcon = "👑";
+
+    if (!bonusPoints) {
+      // 쿠폰 상품 당첨!
+      createdCoupon = {
+        id: "cp_roulette_" + Date.now(),
+        rewardId: "rw_roulette_" + Date.now(),
+        rewardTitle: rewardName,
+        icon: couponIcon,
+        couponCode: couponCode,
+        redeemedAt: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        isUsed: false,
+      };
+      newCoupons.push(createdCoupon);
+    }
+
     const updatedUser: UserProfile = {
       ...user,
       points: Math.max(0, user.points + addedPoints),
+      myCoupons: newCoupons,
     };
+
     setUser(updatedUser);
     setGuests((prev) => prev.map((g) => (g.id === updatedUser.id ? updatedUser : g)));
     localStorage.setItem("partyquest_user", JSON.stringify(updatedUser));
 
+    // 방명록에 당첨 등재
     handleAddGuestbookEntry({
       fromUser: user.nickname,
       fromRole: user.role,
       message: `🎰 룰렛을 돌려 [${rewardName}]에 당첨되었습니다!`,
       sticker: "🎲",
     });
+
+    // 쿠폰 당첨인 경우 즉시 QR코드 모달 팝업 출동!
+    if (createdCoupon) {
+      setRouletteWonCouponModal(createdCoupon);
+    }
   };
 
   // 파티 후원 처리
@@ -549,6 +605,14 @@ export default function Home() {
         onClose={() => setIsRouletteOpen(false)}
         currentUser={user}
         onSpinSuccess={handleSpinSuccess}
+      />
+
+      {/* 🎰 룰렛 당첨 쿠폰 전용 QR 모달 */}
+      <MyCouponWalletModal
+        isOpen={!!rouletteWonCouponModal}
+        onClose={() => setRouletteWonCouponModal(null)}
+        coupons={rouletteWonCouponModal ? [rouletteWonCouponModal] : []}
+        onToggleUseCoupon={handleToggleUseCoupon}
       />
 
       {/* 파티 후원 스폰서십 모달 */}

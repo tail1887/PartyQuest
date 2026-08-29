@@ -74,6 +74,7 @@ export interface PhotoFeedEntry {
   caption?: string;
   createdAt: string;
   reactions: { [sticker: string]: number };
+  myReactions?: string[];
 }
 
 export interface RewardItem {
