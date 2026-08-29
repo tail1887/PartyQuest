@@ -10,16 +10,20 @@ import RewardStore from "@/components/RewardStore";
 import HostDashboard from "@/components/HostDashboard";
 import QuestSuccessModal from "@/components/QuestSuccessModal";
 import JudgeQuickBanner from "@/components/JudgeQuickBanner";
+import LuckyRouletteModal from "@/components/LuckyRouletteModal";
+import SponsorModal from "@/components/SponsorModal";
 import { UserProfile, PartyInfo, Quest, GuestbookEntry, RewardItem } from "@/types/party";
 import { PRESET_QUESTS } from "@/data/presetQuests";
 import { MOCK_GUESTS, INITIAL_GUESTBOOK } from "@/data/mockGuests";
 import { MOCK_REWARDS } from "@/data/mockRewards";
 import { triggerConfetti } from "@/utils/confetti";
-import { Flame, ArrowRight } from "lucide-react";
+import { Flame, ArrowRight, Dices, Crown, Heart } from "lucide-react";
 
 export default function Home() {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
+  const [isRouletteOpen, setIsRouletteOpen] = useState(false);
+  const [isSponsorOpen, setIsSponsorOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<ActiveTab>("quests");
   const [quests, setQuests] = useState<Quest[]>(PRESET_QUESTS);
   const [guests, setGuests] = useState<UserProfile[]>(MOCK_GUESTS);
@@ -165,6 +169,51 @@ export default function Home() {
     );
   };
 
+  // 룰렛 당첨 처리 (포인트 차감 & 보너스 포인트 적립)
+  const handleSpinSuccess = (rewardName: string, bonusPoints?: number) => {
+    if (!user) return;
+    const cost = 50;
+    const addedPoints = (bonusPoints || 0) - cost;
+    const updatedUser: UserProfile = {
+      ...user,
+      points: Math.max(0, user.points + addedPoints),
+    };
+    setUser(updatedUser);
+    setGuests((prev) => prev.map((g) => (g.id === updatedUser.id ? updatedUser : g)));
+    localStorage.setItem("partyquest_user", JSON.stringify(updatedUser));
+
+    // 방명록에 당첨 소식 자동 등재
+    handleAddGuestbookEntry({
+      fromUser: user.nickname,
+      fromRole: user.role,
+      message: `🎰 룰렛을 돌려 [${rewardName}]에 당첨되었습니다!`,
+      sticker: "🎲",
+    });
+  };
+
+  // 파티 후원 처리 (+150P & SPONSOR 뱃지 부여)
+  const handleSponsorSuccess = (amount: number, message: string) => {
+    if (!user) return;
+
+    const updatedUser: UserProfile = {
+      ...user,
+      nickname: `👑 ${user.nickname.replace(/^👑\s*/, "")}`,
+      points: user.points + 150,
+      avatarColor: "from-amber-400 via-orange-500 to-pink-500",
+    };
+    setUser(updatedUser);
+    setGuests((prev) => prev.map((g) => (g.id === updatedUser.id ? updatedUser : g)));
+    localStorage.setItem("partyquest_user", JSON.stringify(updatedUser));
+
+    // 방명록에 후원 소식 자동 렌더링
+    handleAddGuestbookEntry({
+      fromUser: updatedUser.nickname,
+      fromRole: `${updatedUser.role} (👑 SPONSOR)`,
+      message: `💖 파티를 위해 ${amount.toLocaleString()}원을 후원했습니다: "${message}"`,
+      sticker: "👑",
+    });
+  };
+
   // 호스트 기능: 새 퀘스트 추가
   const handleAddQuest = (newQuestData: Omit<Quest, "id" | "completed">) => {
     const newQuest: Quest = {
@@ -196,7 +245,7 @@ export default function Home() {
 
       {/* 메인 컨텐츠 영역 */}
       <div className="max-w-5xl w-full mx-auto px-4 py-6">
-        {/* 파티 배너 & 공지 */}
+        {/* 파티 배너 & 공지 & 룰렛/후원 퀵 버튼 */}
         <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-purple-900/60 via-slate-900/80 to-pink-900/60 border border-purple-500/30 p-6 sm:p-8 mb-6 shadow-2xl">
           <div className="absolute top-0 right-0 w-64 h-64 bg-pink-500/10 rounded-full blur-3xl pointer-events-none" />
           <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -212,15 +261,23 @@ export default function Home() {
               </p>
             </div>
 
-            {!user && (
+            <div className="flex flex-wrap items-center gap-2">
               <button
-                onClick={() => setIsOnboardingOpen(true)}
-                className="px-5 py-2.5 bg-gradient-to-r from-party-pink to-party-purple text-white rounded-2xl text-xs font-bold shadow-lg shadow-pink-500/30 hover:opacity-90 flex items-center gap-1.5 whitespace-nowrap cursor-pointer"
+                onClick={() => setIsRouletteOpen(true)}
+                className="px-4 py-2 bg-gradient-to-r from-party-pink to-purple-600 hover:opacity-90 active:scale-95 text-white rounded-2xl text-xs font-bold shadow-lg shadow-pink-500/20 flex items-center gap-1.5 cursor-pointer"
               >
-                <span>3초 입장하기</span>
-                <ArrowRight className="w-4 h-4" />
+                <Dices className="w-4 h-4 text-amber-300" />
+                <span>🎰 룰렛 뽑기</span>
               </button>
-            )}
+
+              <button
+                onClick={() => setIsSponsorOpen(true)}
+                className="px-4 py-2 bg-gradient-to-r from-amber-400 to-orange-500 hover:opacity-90 active:scale-95 text-slate-950 rounded-2xl text-xs font-black shadow-lg shadow-amber-500/20 flex items-center gap-1.5 cursor-pointer"
+              >
+                <Crown className="w-4 h-4 text-slate-950" />
+                <span>👑 파티 후원</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -283,6 +340,23 @@ export default function Home() {
         currentPoints={user?.points || 0}
         onClose={() => setCompletedQuestModalData(null)}
         onGoToRewards={() => setActiveTab("rewards")}
+      />
+
+      {/* 행운의 파티 룰렛 모달 */}
+      <LuckyRouletteModal
+        isOpen={isRouletteOpen}
+        onClose={() => setIsRouletteOpen(false)}
+        currentUser={user}
+        onSpinSuccess={handleSpinSuccess}
+      />
+
+      {/* 파티 후원 스폰서십 모달 */}
+      <SponsorModal
+        isOpen={isSponsorOpen}
+        onClose={() => setIsSponsorOpen(false)}
+        currentUser={user}
+        onSponsorSuccess={handleSponsorSuccess}
+        onOpenOnboarding={() => setIsOnboardingOpen(true)}
       />
     </main>
   );
