@@ -141,7 +141,13 @@ Model: Agentic Development Loop
 - 파티 탐색/개최/입장 서비스 플로우 100% 완성
 - 빌드 검증: next build 성공
 
+[TASK 26 COMPLETE]
+- MyCouponWalletModal 내 activeBarcode 상세 QR 팝업 시 부모 모달의 X 버튼이 비쳐 보이는 현상 제거 (!activeBarcode 조건 적용)
+- QR 상세 모달 닫기 X 버튼 단일화 및 모달 UX 깔끔 정돈
+- 빌드 검증: next build 성공
+
 ALL TASKS COMPLETE
+
 
 
 
