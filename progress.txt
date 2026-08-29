@@ -180,7 +180,13 @@ Model: Agentic Development Loop
 - next.config.mjs 내 Cache-Control: no-store, no-cache 및 generateEtags: false 적용하여 브라우저 구형 캐시 완전 차단
 - 빌드 검증: next build 성공
 
+[TASK 33 COMPLETE]
+- 진범 버그 해결: Header.tsx 내 구형 220줄 6대 탭 잔존 코드 100% 삭제 및 page.tsx 내 구형 <Header> 호출 전면 축출
+- MainPlatformHeader (플랫폼 랜딩용 2대 탭) vs PartyRoomHeader (파티룸 게임용 4/5대 탭)로 100% 깔끔 교체 완료
+- 빌드 검증: next build 성공
+
 ALL TASKS COMPLETE
+
 
 
 
