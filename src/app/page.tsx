@@ -12,18 +12,20 @@ import QuestSuccessModal from "@/components/QuestSuccessModal";
 import JudgeQuickBanner from "@/components/JudgeQuickBanner";
 import LuckyRouletteModal from "@/components/LuckyRouletteModal";
 import SponsorModal from "@/components/SponsorModal";
-import { UserProfile, PartyInfo, Quest, GuestbookEntry, RewardItem } from "@/types/party";
+import CreateQuestModal from "@/components/CreateQuestModal";
+import { UserProfile, PartyInfo, Quest, GuestbookEntry, RewardItem, QuestSubmission } from "@/types/party";
 import { PRESET_QUESTS } from "@/data/presetQuests";
 import { MOCK_GUESTS, INITIAL_GUESTBOOK } from "@/data/mockGuests";
 import { MOCK_REWARDS } from "@/data/mockRewards";
 import { triggerConfetti } from "@/utils/confetti";
-import { Flame, ArrowRight, Dices, Crown, Heart } from "lucide-react";
+import { Flame, ArrowRight, Dices, Crown, PlusCircle } from "lucide-react";
 
 export default function Home() {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
   const [isRouletteOpen, setIsRouletteOpen] = useState(false);
   const [isSponsorOpen, setIsSponsorOpen] = useState(false);
+  const [isCreateQuestOpen, setIsCreateQuestOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<ActiveTab>("quests");
   const [quests, setQuests] = useState<Quest[]>(PRESET_QUESTS);
   const [guests, setGuests] = useState<UserProfile[]>(MOCK_GUESTS);
@@ -92,7 +94,7 @@ export default function Home() {
   };
 
   // 퀘스트 완료 처리 + Confetti 폭죽 + 성공 모달
-  const handleCompleteQuest = (questId: string, answer?: string) => {
+  const handleCompleteQuest = (questId: string, answer?: string, photoUrl?: string) => {
     const targetQuest = quests.find((q) => q.id === questId);
     if (!targetQuest || targetQuest.completed) return;
 
@@ -103,6 +105,7 @@ export default function Home() {
             completed: true,
             completedAt: new Date().toISOString(),
             userAnswer: answer,
+            photoUrl: photoUrl,
           }
         : q
     );
@@ -127,6 +130,123 @@ export default function Home() {
     // 폭죽 효과 및 모달 오픈
     triggerConfetti();
     setCompletedQuestModalData(targetQuest);
+  };
+
+  // 생성자 승인 필요 퀘스트에 사진 제출
+  const handleSubmitForApproval = (questId: string, photoUrl?: string, answerText?: string) => {
+    if (!user) return;
+
+    const newSubmission: QuestSubmission = {
+      id: "sub_" + Date.now(),
+      userId: user.id,
+      userName: user.nickname,
+      photoUrl,
+      answerText,
+      submittedAt: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      status: "pending",
+    };
+
+    setQuests((prev) =>
+      prev.map((q) =>
+        q.id === questId
+          ? {
+              ...q,
+              pendingSubmissions: [...(q.pendingSubmissions || []), newSubmission],
+            }
+          : q
+      )
+    );
+    triggerConfetti();
+  };
+
+  // 생성자: 승인 처리
+  const handleApproveSubmission = (questId: string, submissionId: string) => {
+    const targetQuest = quests.find((q) => q.id === questId);
+    if (!targetQuest) return;
+
+    const submission = targetQuest.pendingSubmissions?.find((s) => s.id === submissionId);
+    if (!submission) return;
+
+    // 승인 대상자에게 포인트 수여
+    setGuests((prev) =>
+      prev.map((g) =>
+        g.id === submission.userId
+          ? {
+              ...g,
+              points: g.points + targetQuest.points,
+              completedQuestIds: [...g.completedQuestIds, questId],
+            }
+          : g
+      )
+    );
+
+    // 내 자신이 승인받았을 경우
+    if (user && user.id === submission.userId) {
+      const updatedUser: UserProfile = {
+        ...user,
+        points: user.points + targetQuest.points,
+        completedQuestIds: [...user.completedQuestIds, questId],
+      };
+      setUser(updatedUser);
+      localStorage.setItem("partyquest_user", JSON.stringify(updatedUser));
+    }
+
+    // 제출 목록 정리
+    setQuests((prev) =>
+      prev.map((q) =>
+        q.id === questId
+          ? {
+              ...q,
+              pendingSubmissions: q.pendingSubmissions?.filter((s) => s.id !== submissionId),
+            }
+          : q
+      )
+    );
+    triggerConfetti();
+  };
+
+  // 생성자: 거절 처리
+  const handleRejectSubmission = (questId: string, submissionId: string) => {
+    setQuests((prev) =>
+      prev.map((q) =>
+        q.id === questId
+          ? {
+              ...q,
+              pendingSubmissions: q.pendingSubmissions?.filter((s) => s.id !== submissionId),
+            }
+          : q
+      )
+    );
+  };
+
+  // 일반 유저 현상금 퀘스트 생성 (포인트 차감 예치)
+  const handleAddUserQuest = (newQuestData: Omit<Quest, "id" | "completed">, bountyCost: number) => {
+    if (!user || user.points < bountyCost) return;
+
+    // 현상금 차감
+    const updatedUser: UserProfile = {
+      ...user,
+      points: user.points - bountyCost,
+    };
+    setUser(updatedUser);
+    setGuests((prev) => prev.map((g) => (g.id === updatedUser.id ? updatedUser : g)));
+    localStorage.setItem("partyquest_user", JSON.stringify(updatedUser));
+
+    // 퀘스트 추가
+    const newQuest: Quest = {
+      ...newQuestData,
+      id: "quest_bounty_" + Date.now(),
+      completed: false,
+    };
+    setQuests((prev) => [newQuest, ...prev]);
+
+    // 방명록에 소식 자동 등재
+    handleAddGuestbookEntry({
+      fromUser: user.nickname,
+      fromRole: user.role,
+      message: `🎯 [현상금 퀘스트 생성] ${bountyCost}P를 내걸고 나만의 퀘스트 "${newQuestData.title}"를 개설했습니다!`,
+      sticker: "💰",
+    });
   };
 
   // 방명록 작성 처리 및 Q4 퀘스트 자동 완료 연동
@@ -169,7 +289,7 @@ export default function Home() {
     );
   };
 
-  // 룰렛 당첨 처리 (포인트 차감 & 보너스 포인트 적립)
+  // 룰렛 당첨 처리
   const handleSpinSuccess = (rewardName: string, bonusPoints?: number) => {
     if (!user) return;
     const cost = 50;
@@ -182,7 +302,6 @@ export default function Home() {
     setGuests((prev) => prev.map((g) => (g.id === updatedUser.id ? updatedUser : g)));
     localStorage.setItem("partyquest_user", JSON.stringify(updatedUser));
 
-    // 방명록에 당첨 소식 자동 등재
     handleAddGuestbookEntry({
       fromUser: user.nickname,
       fromRole: user.role,
@@ -191,7 +310,7 @@ export default function Home() {
     });
   };
 
-  // 파티 후원 처리 (+150P & SPONSOR 뱃지 부여)
+  // 파티 후원 처리
   const handleSponsorSuccess = (amount: number, message: string) => {
     if (!user) return;
 
@@ -205,7 +324,6 @@ export default function Home() {
     setGuests((prev) => prev.map((g) => (g.id === updatedUser.id ? updatedUser : g)));
     localStorage.setItem("partyquest_user", JSON.stringify(updatedUser));
 
-    // 방명록에 후원 소식 자동 렌더링
     handleAddGuestbookEntry({
       fromUser: updatedUser.nickname,
       fromRole: `${updatedUser.role} (👑 SPONSOR)`,
@@ -245,7 +363,7 @@ export default function Home() {
 
       {/* 메인 컨텐츠 영역 */}
       <div className="max-w-5xl w-full mx-auto px-4 py-6">
-        {/* 파티 배너 & 공지 & 룰렛/후원 퀵 버튼 */}
+        {/* 파티 배너 & 공지 & 룰렛/후원/나만의 퀘스트 퀵 버튼 */}
         <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-purple-900/60 via-slate-900/80 to-pink-900/60 border border-purple-500/30 p-6 sm:p-8 mb-6 shadow-2xl">
           <div className="absolute top-0 right-0 w-64 h-64 bg-pink-500/10 rounded-full blur-3xl pointer-events-none" />
           <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -263,19 +381,27 @@ export default function Home() {
 
             <div className="flex flex-wrap items-center gap-2">
               <button
+                onClick={() => setIsCreateQuestOpen(true)}
+                className="px-3.5 py-2 bg-gradient-to-r from-amber-400 to-orange-500 hover:opacity-90 active:scale-95 text-slate-950 rounded-2xl text-xs font-black shadow-lg shadow-amber-500/20 flex items-center gap-1.5 cursor-pointer"
+              >
+                <PlusCircle className="w-4 h-4 text-slate-950" />
+                <span>+ 퀘스트 만들기</span>
+              </button>
+
+              <button
                 onClick={() => setIsRouletteOpen(true)}
-                className="px-4 py-2 bg-gradient-to-r from-party-pink to-purple-600 hover:opacity-90 active:scale-95 text-white rounded-2xl text-xs font-bold shadow-lg shadow-pink-500/20 flex items-center gap-1.5 cursor-pointer"
+                className="px-3.5 py-2 bg-gradient-to-r from-party-pink to-purple-600 hover:opacity-90 active:scale-95 text-white rounded-2xl text-xs font-bold shadow-lg shadow-pink-500/20 flex items-center gap-1.5 cursor-pointer"
               >
                 <Dices className="w-4 h-4 text-amber-300" />
-                <span>🎰 룰렛 뽑기</span>
+                <span>🎰 룰렛</span>
               </button>
 
               <button
                 onClick={() => setIsSponsorOpen(true)}
-                className="px-4 py-2 bg-gradient-to-r from-amber-400 to-orange-500 hover:opacity-90 active:scale-95 text-slate-950 rounded-2xl text-xs font-black shadow-lg shadow-amber-500/20 flex items-center gap-1.5 cursor-pointer"
+                className="px-3.5 py-2 bg-gradient-to-r from-amber-300 to-pink-500 hover:opacity-90 active:scale-95 text-slate-950 rounded-2xl text-xs font-black shadow-lg shadow-amber-500/20 flex items-center gap-1.5 cursor-pointer"
               >
                 <Crown className="w-4 h-4 text-slate-950" />
-                <span>👑 파티 후원</span>
+                <span>👑 후원</span>
               </button>
             </div>
           </div>
@@ -286,7 +412,11 @@ export default function Home() {
           <QuestList
             quests={quests}
             onCompleteQuest={handleCompleteQuest}
+            onSubmitForApproval={handleSubmitForApproval}
+            onApproveSubmission={handleApproveSubmission}
+            onRejectSubmission={handleRejectSubmission}
             onNavigateSocial={() => setActiveTab("networking")}
+            onOpenCreateQuestModal={() => setIsCreateQuestOpen(true)}
           />
         )}
 
@@ -356,6 +486,15 @@ export default function Home() {
         onClose={() => setIsSponsorOpen(false)}
         currentUser={user}
         onSponsorSuccess={handleSponsorSuccess}
+        onOpenOnboarding={() => setIsOnboardingOpen(true)}
+      />
+
+      {/* 나만의 현상금 퀘스트 생성 모달 */}
+      <CreateQuestModal
+        isOpen={isCreateQuestOpen}
+        onClose={() => setIsCreateQuestOpen(false)}
+        currentUser={user}
+        onAddUserQuest={handleAddUserQuest}
         onOpenOnboarding={() => setIsOnboardingOpen(true)}
       />
     </main>

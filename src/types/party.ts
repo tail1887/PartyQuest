@@ -1,9 +1,10 @@
-export type UserRole = "💻 개발자" | "🎨 디자이너" | "🎉 파티러버" | "👔 기획/PM" | "🚀 창업가" | "🎵 DJ/음악";
+export type Role = "💻 개발자" | "🎨 디자이너" | "👔 기획/PM" | "🎵 DJ/음악" | "🚀 창업가" | "🎉 파티러버";
+export type UserRole = Role;
 
 export interface UserProfile {
   id: string;
   nickname: string;
-  role: UserRole;
+  role: Role;
   bio: string;
   instagram?: string;
   linkedin?: string;
@@ -13,27 +14,41 @@ export interface UserProfile {
   avatarColor: string;
 }
 
-export type QuestType = "input" | "click" | "check" | "social";
+export type QuestType = "click" | "input" | "check" | "photo" | "social";
+
+export interface QuestSubmission {
+  id: string;
+  userId: string;
+  userName: string;
+  photoUrl?: string;
+  answerText?: string;
+  submittedAt: string;
+  status: "pending" | "approved" | "rejected";
+}
 
 export interface Quest {
   id: string;
   title: string;
   description: string;
   points: number;
-  category: "아이스브레이킹" | "미션" | "스낵바" | "소셜";
+  category: "아이스브레이킹" | "스낵바" | "미션" | "소셜" | "유저현상금";
   type: QuestType;
   inputPlaceholder?: string;
-  targetCount?: number;
   completed: boolean;
   completedAt?: string;
   userAnswer?: string;
+  creatorId?: string;
+  creatorName?: string;
+  requiresApproval?: boolean;
+  photoUrl?: string;
+  pendingSubmissions?: QuestSubmission[];
 }
 
 export interface GuestbookEntry {
   id: string;
   fromUser: string;
   fromRole: string;
-  toUserId?: string; // 특정 유저 또는 전체 방명록
+  toUserId?: string;
   message: string;
   sticker: string;
   createdAt: string;
@@ -46,7 +61,7 @@ export interface RewardItem {
   pointsRequired: number;
   icon: string;
   availableCount: number;
-  couponCode?: string;
+  couponCode: string;
 }
 
 export interface PartyInfo {

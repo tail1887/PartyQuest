@@ -75,7 +75,17 @@ Model: Agentic Development Loop
 - 온보딩 ➔ 퀘스트 ➔ 방명록 ➔ 리더보드 ➔ 리워드 ➔ 호스트 5단계 사용자 흐름 무결성 검증
 - 프로덕션 빌드 성공
 
+[TASK 14 COMPLETE]
+- CreateQuestModal 컴포넌트 구현 (개인 참가자 현상금 포인트 예치 퀘스트 생성, 승인 토글 옵션)
+- 빌드 검증: next build 성공
+
+[TASK 15 COMPLETE]
+- 📸 사진 인증 업로드(Photo Upload) 폼 구현 (QuestCard.tsx FileReader 미리보기)
+- 생성자/호스트 검증 및 승인/거절 피드 패널 연동
+- 빌드 검증: next build 성공
+
 ALL TASKS COMPLETE
+
 
 
 

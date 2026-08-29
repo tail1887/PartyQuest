@@ -1,148 +1,248 @@
 "use client";
 
 import React, { useState } from "react";
-import { Quest } from "@/types/party";
-import { CheckCircle2, Award, ArrowRight, Sparkles, Send, Flame } from "lucide-react";
+import { Quest, QuestSubmission, UserProfile } from "@/types/party";
+import { CheckCircle2, Award, ArrowRight, Camera, ShieldAlert, Clock, Check, X, User } from "lucide-react";
 
 interface QuestCardProps {
   quest: Quest;
-  onComplete: (questId: string, answer?: string) => void;
+  currentUser: UserProfile | null;
+  onComplete: (questId: string, answer?: string, photoUrl?: string) => void;
+  onSubmitForApproval?: (questId: string, photoUrl?: string, answerText?: string) => void;
+  onApproveSubmission?: (questId: string, submissionId: string) => void;
+  onRejectSubmission?: (questId: string, submissionId: string) => void;
   onNavigateSocial?: () => void;
 }
 
-export default function QuestCard({ quest, onComplete, onNavigateSocial }: QuestCardProps) {
-  const [inputValue, setInputValue] = useState("");
+export default function QuestCard({
+  quest,
+  currentUser,
+  onComplete,
+  onSubmitForApproval,
+  onApproveSubmission,
+  onRejectSubmission,
+  onNavigateSocial,
+}: QuestCardProps) {
+  const [inputText, setInputText] = useState("");
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [showApprovalPanel, setShowApprovalPanel] = useState(false);
   const [error, setError] = useState("");
 
-  const handleInputSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!inputValue.trim()) {
-      setError("답변 내용을 입력해 주세요!");
-      return;
+  const isCompleted = quest.completed;
+  const isCreator = currentUser && (currentUser.id === quest.creatorId || currentUser.nickname === "PartyHost");
+
+  // 내 대기 중인 제출물 확인
+  const myPendingSubmission = quest.pendingSubmissions?.find(
+    (s) => currentUser && s.userId === currentUser.id && s.status === "pending"
+  );
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhotoPreview(reader.result as string);
+        setError("");
+      };
+      reader.readAsDataURL(file);
     }
-    onComplete(quest.id, inputValue.trim());
-    setInputValue("");
-    setError("");
   };
 
-  const getCategoryColor = (category: Quest["category"]) => {
-    switch (category) {
-      case "아이스브레이킹":
-        return "bg-pink-500/20 text-pink-300 border-pink-500/30";
-      case "스낵바":
-        return "bg-amber-500/20 text-amber-300 border-amber-500/30";
-      case "미션":
-        return "bg-purple-500/20 text-purple-300 border-purple-500/30";
-      case "소셜":
-        return "bg-cyan-500/20 text-cyan-300 border-cyan-500/30";
-      default:
-        return "bg-slate-500/20 text-slate-300 border-slate-500/30";
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (quest.type === "photo" && !photoPreview) {
+      setError("인증 사진을 첨부해 주세요!");
+      return;
     }
+
+    if (quest.type === "input" && !inputText.trim()) {
+      setError("정답 키워드/텍스트를 입력해 주세요!");
+      return;
+    }
+
+    // 생성자 승인 필요 시
+    if (quest.requiresApproval && onSubmitForApproval) {
+      onSubmitForApproval(quest.id, photoPreview || undefined, inputText.trim() || undefined);
+      setPhotoPreview(null);
+      setInputText("");
+      setError("");
+      return;
+    }
+
+    // 즉시 완료
+    onComplete(quest.id, inputText.trim() || undefined, photoPreview || undefined);
   };
 
   return (
     <div
-      className={`relative overflow-hidden rounded-2xl border transition duration-200 p-5 ${
-        quest.completed
-          ? "bg-slate-900/80 border-emerald-500/40 shadow-lg shadow-emerald-950/30"
+      className={`relative overflow-hidden rounded-2xl border p-5 transition duration-200 flex flex-col justify-between ${
+        isCompleted
+          ? "bg-slate-900/60 border-slate-800 opacity-80"
+          : quest.category === "유저현상금"
+          ? "bg-party-card border-amber-500/40 hover:border-amber-400 shadow-lg shadow-amber-950/20"
           : "bg-party-card border-purple-500/20 hover:border-purple-500/50 shadow-md shadow-purple-950/20"
       }`}
     >
-      {/* 완료 상태 워터마크 */}
-      {quest.completed && (
-        <div className="absolute top-3 right-3 flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-xs font-bold animate-in fade-in duration-150">
-          <CheckCircle2 className="w-3.5 h-3.5" /> 완료됨
-        </div>
-      )}
+      <div>
+        {/* 상단 뱃지 & 포인트 */}
+        <div className="flex items-center justify-between gap-2 mb-3">
+          <div className="flex items-center gap-2">
+            <span
+              className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
+                quest.category === "아이스브레이킹"
+                  ? "bg-pink-950/60 text-pink-300 border-pink-500/30"
+                  : quest.category === "스낵바"
+                  ? "bg-cyan-950/60 text-cyan-300 border-cyan-500/30"
+                  : quest.category === "유저현상금"
+                  ? "bg-amber-950/60 text-amber-300 border-amber-500/30"
+                  : "bg-purple-950/60 text-purple-300 border-purple-500/30"
+              }`}
+            >
+              {quest.category}
+            </span>
 
-      {/* 카테고리 & 포인트 뱃지 */}
-      <div className="flex items-center gap-2 mb-3">
-        <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${getCategoryColor(quest.category)}`}>
-          {quest.category}
-        </span>
-        <span className="flex items-center gap-1 text-xs font-extrabold text-amber-400">
-          <Award className="w-3.5 h-3.5" /> +{quest.points} P
-        </span>
+            {quest.creatorName && (
+              <span className="text-[10px] text-slate-400 font-medium">
+                by {quest.creatorName}
+              </span>
+            )}
+          </div>
+
+          <div className="flex items-center gap-1 text-xs font-black text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-full border border-amber-500/20">
+            <Award className="w-3.5 h-3.5 text-amber-400" />
+            <span>+{quest.points} P</span>
+          </div>
+        </div>
+
+        <h4 className="text-base font-bold text-white mb-1">{quest.title}</h4>
+        <p className="text-xs text-slate-300 mb-4 leading-relaxed bg-slate-900/40 p-2.5 rounded-xl border border-slate-800/60">
+          {quest.description}
+        </p>
+
+        {/* 사진 인증 등록 이미지 미리보기 */}
+        {photoPreview && (
+          <div className="mb-3 relative rounded-xl overflow-hidden border border-purple-500/40 bg-slate-950 p-2">
+            <img src={photoPreview} alt="인증 사진 미리보기" className="w-full h-36 object-cover rounded-lg" />
+            <button
+              type="button"
+              onClick={() => setPhotoPreview(null)}
+              className="absolute top-3 right-3 p-1 rounded-full bg-black/70 text-white hover:bg-rose-600"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* 제목 및 설명 */}
-      <h4 className={`text-base font-bold mb-1.5 ${quest.completed ? "text-slate-300 line-through decoration-slate-500" : "text-white"}`}>
-        {quest.title}
-      </h4>
-      <p className="text-xs text-slate-400 mb-4 leading-relaxed">
-        {quest.description}
-      </p>
-
-      {/* 내가 작성한 답변 표시 (완료된 경우) */}
-      {quest.completed && quest.userAnswer && (
-        <div className="mt-2 p-2.5 rounded-xl bg-slate-950/60 border border-slate-800 text-xs text-slate-300">
-          <span className="text-slate-500 font-semibold mr-1.5">내 인증 내용:</span>
-          <span className="italic text-cyan-300">"{quest.userAnswer}"</span>
-        </div>
-      )}
-
-      {/* 미완료 시 인터랙션 컨트롤 */}
-      {!quest.completed && (
-        <div className="pt-2 border-t border-purple-500/10">
-          {quest.type === "input" && (
-            <form onSubmit={handleInputSubmit} className="space-y-2">
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  placeholder={quest.inputPlaceholder || "내용을 입력해 주세요..."}
-                  value={inputValue}
-                  onChange={(e) => {
-                    setInputValue(e.target.value);
-                    setError("");
-                  }}
-                  className="flex-1 px-3.5 py-2 bg-slate-900/90 border border-purple-500/30 focus:border-party-pink rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none"
-                />
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-gradient-to-r from-party-pink to-party-purple text-white text-xs font-bold rounded-xl shadow-md shadow-pink-500/20 hover:opacity-90 active:scale-95 transition flex items-center gap-1 whitespace-nowrap cursor-pointer"
-                >
-                  <span>인증</span>
-                  <Send className="w-3 h-3" />
-                </button>
+      {/* 완료/인증 하단 액션 바 */}
+      <div>
+        {isCompleted ? (
+          <div className="flex items-center justify-between text-xs text-emerald-400 font-bold bg-emerald-950/40 border border-emerald-500/30 px-3.5 py-2.5 rounded-xl">
+            <span className="flex items-center gap-1.5">
+              <CheckCircle2 className="w-4 h-4" /> 미션 달성 완료!
+            </span>
+            <span className="text-[10px] text-slate-400">{quest.userAnswer || "성공"}</span>
+          </div>
+        ) : myPendingSubmission ? (
+          <div className="flex items-center justify-between text-xs text-amber-300 font-bold bg-amber-950/40 border border-amber-500/30 px-3.5 py-2.5 rounded-xl">
+            <span className="flex items-center gap-1.5">
+              <Clock className="w-4 h-4 animate-spin text-amber-400" /> 생성자 검증 승인 대기 중...
+            </span>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-2">
+            {/* 사진 인증 업로드 버튼 */}
+            {quest.type === "photo" && (
+              <div className="flex items-center gap-2">
+                <label className="flex-1 py-2 px-3 bg-slate-900 hover:bg-slate-800 border border-purple-500/30 rounded-xl text-xs text-slate-300 flex items-center justify-center gap-2 cursor-pointer transition">
+                  <Camera className="w-4 h-4 text-party-pink" />
+                  <span>{photoPreview ? "사진 다시 선택" : "📸 인증 사진 파일 선택"}</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
+                </label>
               </div>
-              {error && <p className="text-[11px] text-rose-400 font-medium">{error}</p>}
-            </form>
-          )}
+            )}
 
-          {quest.type === "click" && (
-            <button
-              onClick={() => onComplete(quest.id)}
-              className="w-full py-2.5 px-4 bg-gradient-to-r from-party-purple to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-xl text-xs font-bold shadow-md shadow-purple-500/20 active:scale-[0.98] transition flex items-center justify-center gap-1.5 cursor-pointer"
-            >
-              <Sparkles className="w-4 h-4 text-cyan-300" />
-              <span>미션 완료 인증하기</span>
-            </button>
-          )}
+            {/* 텍스트 입력 */}
+            {quest.type === "input" && (
+              <input
+                type="text"
+                placeholder={quest.inputPlaceholder || "정답 키워드 입력"}
+                value={inputText}
+                onChange={(e) => {
+                  setInputText(e.target.value);
+                  setError("");
+                }}
+                className="w-full px-3.5 py-2 bg-slate-900 border border-purple-500/30 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-party-pink"
+              />
+            )}
 
-          {quest.type === "check" && (
-            <button
-              onClick={() => onComplete(quest.id)}
-              className="w-full py-2.5 px-4 bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white rounded-xl text-xs font-bold shadow-md shadow-pink-500/20 active:scale-[0.98] transition flex items-center justify-center gap-1.5 cursor-pointer"
-            >
-              <Flame className="w-4 h-4 text-amber-300" />
-              <span>30초 자기소개 완료!</span>
-            </button>
-          )}
+            {error && <p className="text-xs text-rose-400 font-medium">{error}</p>}
 
-          {quest.type === "social" && (
             <button
-              onClick={() => {
-                if (onNavigateSocial) onNavigateSocial();
-                else onComplete(quest.id);
-              }}
-              className="w-full py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-cyan-500/30 rounded-xl text-xs font-bold active:scale-[0.98] transition flex items-center justify-center gap-1.5 cursor-pointer"
+              type="submit"
+              className="w-full py-2.5 px-4 bg-gradient-to-r from-party-pink via-party-purple to-party-cyan hover:opacity-90 active:scale-95 text-white rounded-xl text-xs font-bold shadow-md shadow-pink-500/20 transition flex items-center justify-center gap-1.5 cursor-pointer"
             >
-              <span>네트워킹 월로 이동하여 남기기</span>
+              <span>{quest.requiresApproval ? "생성자에게 인증 사진 제출하기 🚀" : "미션 완료 인증하기"}</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
-          )}
-        </div>
-      )}
+          </form>
+        )}
+
+        {/* 생성자/호스트 관리 패널 (대기 제출물 검토) */}
+        {isCreator && quest.pendingSubmissions && quest.pendingSubmissions.length > 0 && (
+          <div className="mt-3 pt-3 border-t border-purple-500/20">
+            <button
+              onClick={() => setShowApprovalPanel(!showApprovalPanel)}
+              className="w-full py-1.5 px-3 bg-amber-500/20 text-amber-300 border border-amber-500/40 rounded-xl text-xs font-bold flex items-center justify-between cursor-pointer"
+            >
+              <span>🔍 대기 중인 인증 {quest.pendingSubmissions.length}건 검토</span>
+              <span>{showApprovalPanel ? "▲ 닫기" : "▼ 열기"}</span>
+            </button>
+
+            {showApprovalPanel && (
+              <div className="mt-2 space-y-2">
+                {quest.pendingSubmissions.map((sub) => (
+                  <div key={sub.id} className="bg-slate-950 p-2.5 rounded-xl border border-slate-800 text-xs">
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <span className="font-bold text-white flex items-center gap-1">
+                        <User className="w-3 h-3 text-party-pink" /> {sub.userName}
+                      </span>
+                      <span className="text-[10px] text-slate-500">{sub.submittedAt}</span>
+                    </div>
+
+                    {sub.photoUrl && (
+                      <img src={sub.photoUrl} alt="제출 사진" className="w-full h-28 object-cover rounded-lg mb-2" />
+                    )}
+
+                    {sub.answerText && <p className="text-slate-300 text-[11px] mb-2">"{sub.answerText}"</p>}
+
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => onApproveSubmission && onApproveSubmission(quest.id, sub.id)}
+                        className="flex-1 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-bold text-[11px] flex items-center justify-center gap-1"
+                      >
+                        <Check className="w-3 h-3" /> 승인 (+{quest.points}P)
+                      </button>
+                      <button
+                        onClick={() => onRejectSubmission && onRejectSubmission(quest.id, sub.id)}
+                        className="flex-1 py-1 bg-rose-600 hover:bg-rose-500 text-white rounded-lg font-bold text-[11px] flex items-center justify-center gap-1"
+                      >
+                        <X className="w-3 h-3" /> 거절
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

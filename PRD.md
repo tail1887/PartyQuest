@@ -106,9 +106,7 @@
 - [x] **Task 10**: 게이미피케이션 행운의 파티 룰렛/뽑기 & 아바타 네온 후광(Aura) 스킨 구현
 - [x] **Task 11**: 파티 후원/도네이션 모달 & 스폰서 뱃지 시스템 구현
 - [x] **Task 12**: 해커톤 제출용 발표 HTML 및 발표 스크립트 패키징 (doc/presentation.html, doc/speech_script.md)
-
 - [x] **Task 13**: Playwright E2E 자동화 테스트 스크립트 작성 및 최종 무결성 검증 (tests/e2e.spec.ts)
-
-
-
+- [x] **Task 14**: 개인 참가자 포인트 현상금 퀘스트(Bounty Quest) 생성 모달 & 생성자 승인 토글 구현 (CreateQuestModal.tsx)
+- [x] **Task 15**: 퀘스트 수행 시 사진 인증 업로드(Photo Upload) & 생성자 검증/승인 피드 시스템 구현
 
