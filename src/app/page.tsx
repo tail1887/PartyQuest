@@ -13,13 +13,15 @@ import LuckyRouletteModal from "@/components/LuckyRouletteModal";
 import SponsorModal from "@/components/SponsorModal";
 import CreateQuestModal from "@/components/CreateQuestModal";
 import MyCouponWalletModal from "@/components/MyCouponWalletModal";
-import { UserProfile, PartyInfo, Quest, GuestbookEntry, RewardItem, QuestSubmission, PhotoFeedEntry, RedeemedCoupon } from "@/types/party";
+import CreatePartyModal from "@/components/CreatePartyModal";
+import { UserProfile, PartyInfo, Quest, GuestbookEntry, RewardItem, QuestSubmission, PhotoFeedEntry, RedeemedCoupon, PartyRoom } from "@/types/party";
 import { PRESET_QUESTS } from "@/data/presetQuests";
 import { MOCK_GUESTS, INITIAL_GUESTBOOK } from "@/data/mockGuests";
 import { MOCK_REWARDS } from "@/data/mockRewards";
 import { INITIAL_PHOTO_FEED } from "@/data/mockPhotoFeed";
+import { INITIAL_PARTIES } from "@/data/mockParties";
 import { triggerConfetti } from "@/utils/confetti";
-import { Flame, ArrowRight, Dices, Crown, PlusCircle } from "lucide-react";
+import { Flame, ArrowRight, Dices, Crown, PlusCircle, QrCode, Sparkles, MapPin, Users, Calendar, X, ExternalLink, Share2, Copy, Check, Ticket, PartyPopper } from "lucide-react";
 
 export default function Home() {
   const [user, setUser] = useState<UserProfile | null>(null);
@@ -27,27 +29,45 @@ export default function Home() {
   const [isRouletteOpen, setIsRouletteOpen] = useState(false);
   const [isSponsorOpen, setIsSponsorOpen] = useState(false);
   const [isCreateQuestOpen, setIsCreateQuestOpen] = useState(false);
+  const [isCreatePartyOpen, setIsCreatePartyOpen] = useState(false);
   const [isWalletOpen, setIsWalletOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<ActiveTab>("quests");
-  const [quests, setQuests] = useState<Quest[]>(PRESET_QUESTS);
-  const [guests, setGuests] = useState<UserProfile[]>(MOCK_GUESTS);
-  const [guestbook, setGuestbook] = useState<GuestbookEntry[]>(INITIAL_GUESTBOOK);
-  const [photoFeed, setPhotoFeed] = useState<PhotoFeedEntry[]>(INITIAL_PHOTO_FEED);
+
+  // 이벤터스 스타일 멀티 파티 및 랜딩 상태 (무조건 디폴트는 랜딩 모드!)
+  const [parties, setParties] = useState<PartyRoom[]>(INITIAL_PARTIES);
+  const [currentParty, setCurrentParty] = useState<PartyRoom>(INITIAL_PARTIES[0]);
+  const [isLandingMode, setIsLandingMode] = useState<boolean>(true);
+
+  // 현장 파티 초대 QR코드 모달 팝업 상태
+  const [partyQrModalData, setPartyQrModalData] = useState<PartyRoom | null>(null);
+
+  // 실시간 퀘스트 / 게스트 / 방명록 / 사진피드 상태
+  const [quests, setQuests] = useState<Quest[]>(INITIAL_PARTIES[0].quests);
+  const [guests, setGuests] = useState<UserProfile[]>(INITIAL_PARTIES[0].guests);
+  const [guestbook, setGuestbook] = useState<GuestbookEntry[]>(INITIAL_PARTIES[0].guestbook);
+  const [photoFeed, setPhotoFeed] = useState<PhotoFeedEntry[]>(INITIAL_PARTIES[0].photoFeed);
   const [rewards, setRewards] = useState<RewardItem[]>(MOCK_REWARDS);
   const [completedQuestModalData, setCompletedQuestModalData] = useState<Quest | null>(null);
 
   // 룰렛 당첨 전용 QR 모달 상태
   const [rouletteWonCouponModal, setRouletteWonCouponModal] = useState<RedeemedCoupon | null>(null);
 
-  const [partyInfo, setPartyInfo] = useState<PartyInfo>({
-    name: "2026 I/O Extended: Hack the Beat Networking Party",
-    theme: "AI, Music & Tech Gathering 🌴",
-    location: "Google Hackathon Main Hall",
-    announcement: "📢 환영합니다! 파티 퀘스트를 완수하고 스낵바 음료권과 럭키드로우 티켓을 획득하세요!",
-    activeGuestsCount: 42,
-  });
+  // URL query (?partyId=...) 확인: 초대 링크 타셨을 때만 바로 파티룸 접속!
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const partyId = params.get("partyId");
+      if (partyId) {
+        const found = parties.find((p) => p.id === partyId);
+        if (found) {
+          handleSelectParty(found);
+          setIsLandingMode(false);
+        }
+      }
+    }
+  }, []);
 
-  // 로컬스토리지에서 기존 유저 및 퀘스트 상태 로드
+  // 로컬스토리지에서 유저 상태 로드
   useEffect(() => {
     const savedUser = localStorage.getItem("partyquest_user");
     if (savedUser) {
@@ -75,6 +95,36 @@ export default function Home() {
       setIsOnboardingOpen(true);
     }
   }, []);
+
+  // 탭 변경 시 'home' 탭 선택 처리
+  const handleTabChange = (tab: ActiveTab) => {
+    if (tab === "home") {
+      setIsLandingMode(true);
+      setActiveTab("quests");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } else {
+      setIsLandingMode(false);
+      setActiveTab(tab);
+    }
+  };
+
+  // 특정 파티룸으로 입장 처리
+  const handleSelectParty = (party: PartyRoom) => {
+    setCurrentParty(party);
+    setQuests(party.quests);
+    setGuests(party.guests);
+    setGuestbook(party.guestbook);
+    setPhotoFeed(party.photoFeed);
+    setIsLandingMode(false);
+    setActiveTab("quests");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  // 새 파티 생성 완료 처리
+  const handlePartyCreated = (newParty: PartyRoom) => {
+    setParties((prev) => [newParty, ...prev]);
+    handleSelectParty(newParty);
+  };
 
   const handleOnboardingComplete = (newUser: UserProfile) => {
     setUser(newUser);
@@ -254,8 +304,9 @@ export default function Home() {
     handleAddGuestbookEntry({
       fromUser: user.nickname,
       fromRole: user.role,
-      message: `🎯 [현상금 퀘스트 생성] ${bountyCost}P를 내걸고 나만의 퀘스트 "${newQuestData.title}"를 개설했습니다!`,
+      message: `🎯 [현상금 퀘스트 개설] ${bountyCost}P를 내걸고 "${newQuestData.title}" 퀘스트를 개설했습니다!`,
       sticker: "💰",
+      tag: "QUEST_PROOF",
     });
   };
 
@@ -349,6 +400,7 @@ export default function Home() {
   const handleAddGuestbookEntry = (entry: Omit<GuestbookEntry, "id" | "createdAt">) => {
     const newGb: GuestbookEntry = {
       ...entry,
+      tag: entry.tag || "CHEER",
       id: "gb_" + Date.now(),
       createdAt: "방금 전",
     };
@@ -406,6 +458,7 @@ export default function Home() {
       fromRole: user.role,
       message: `🎰 룰렛을 돌려 [${rewardName}]에 당첨되었습니다!`,
       sticker: "🎲",
+      tag: "QUEST_PROOF",
     });
 
     if (createdCoupon) {
@@ -432,6 +485,7 @@ export default function Home() {
       fromRole: `${updatedUser.role} (👑 SPONSOR)`,
       message: `💖 파티를 위해 ${amount.toLocaleString()}원을 후원했습니다: "${message}"`,
       sticker: "👑",
+      tag: "CHEER",
     });
   };
 
@@ -455,113 +509,320 @@ export default function Home() {
       {/* 헤더 & 네비게이션 */}
       <Header
         user={user}
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
+        activeTab={isLandingMode ? "home" : activeTab}
+        setActiveTab={handleTabChange}
         onEditProfile={() => setIsOnboardingOpen(true)}
         onOpenWallet={() => setIsWalletOpen(true)}
-        activeGuestsCount={partyInfo.activeGuestsCount}
+        onGoToPartyList={() => setIsLandingMode(true)}
+        onOpenPartyQr={() => setPartyQrModalData(currentParty)}
+        currentPartyName={isLandingMode ? "파티 개설 & 탐색 서비스 홈" : currentParty.name}
+        activeGuestsCount={currentParty.activeGuestsCount}
       />
 
-      {/* 메인 컨텐츠 영역 */}
       <div className="max-w-5xl w-full mx-auto px-4 py-6">
-        {/* 파티 배너 & 공지 & 룰렛/후원/나만의 퀘스트 퀵 버튼 */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-purple-900/60 via-slate-900/80 to-pink-900/60 border border-purple-500/30 p-6 sm:p-8 mb-6 shadow-2xl">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-pink-500/10 rounded-full blur-3xl pointer-events-none" />
-          <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div>
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30 mb-2">
-                <Flame className="w-3.5 h-3.5 text-party-pink animate-pulse" /> {partyInfo.theme}
+        {/* ======================================================== */}
+        {/* 1. 이벤터스/Luma 스타일 파티 목록 랜딩 뷰 (디폴트 메인 진입점!) */}
+        {/* ======================================================== */}
+        {isLandingMode ? (
+          <div className="space-y-8 animate-in fade-in duration-200">
+            {/* 이벤터스 스타일 개설 히어로 배너 */}
+            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-purple-900/80 via-slate-900/90 to-pink-900/80 border border-purple-500/40 p-8 sm:p-10 shadow-2xl">
+              <div className="absolute top-0 right-0 w-80 h-80 bg-pink-500/10 rounded-full blur-3xl pointer-events-none" />
+              <div className="relative z-10 max-w-2xl">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-purple-500/20 text-purple-300 border border-purple-500/30 mb-3">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-300" /> EVENTUS & LUMA STYLE PLATFORM
+                </span>
+                <h2 className="text-2xl sm:text-4xl font-black text-white tracking-tight leading-tight">
+                  파티를 개최하고, <br />
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-party-pink via-purple-300 to-party-cyan">
+                    QR초대로 참가자를 모으세요!
+                  </span>
+                </h2>
+                <p className="text-xs sm:text-sm text-slate-300 mt-3 leading-relaxed">
+                  누구나 1초 만에 나만의 파티퀘스트 개설 가능! 현장 스캔 초대 QR코드 발급부터 퀘스트 게이미피케이션, 소셜 피드까지 올인원으로 관리하세요.
+                </p>
+
+                <div className="mt-6 flex flex-wrap gap-3">
+                  <button
+                    onClick={() => setIsCreatePartyOpen(true)}
+                    className="px-6 py-3.5 bg-gradient-to-r from-party-pink to-party-purple hover:opacity-90 active:scale-95 text-white font-black text-xs sm:text-sm rounded-2xl shadow-xl shadow-pink-500/30 flex items-center gap-2 cursor-pointer transition"
+                  >
+                    <PlusCircle className="w-4 h-4" />
+                    <span>🎉 나만의 파티 개최하기 (QR코드 자동 생성)</span>
+                  </button>
+                </div>
               </div>
-              <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
-                {partyInfo.name}
-              </h2>
-              <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-xl">
-                {partyInfo.announcement}
+            </div>
+
+            {/* 현재 열린 파티 탐색 리스트 */}
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-xl font-black text-white flex items-center gap-2">
+                    <Flame className="w-5 h-5 text-party-pink animate-pulse" /> 현재 진행 중인 열린 파티 목록
+                  </h3>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    참가하고 싶은 파티를 선택하거나 현장 QR코드를 스캔하여 전용 퀘스트 룸에 입장하세요!
+                  </p>
+                </div>
+                <span className="text-xs font-bold text-purple-300 bg-purple-950/60 px-3 py-1 rounded-full border border-purple-500/30">
+                  {parties.length}개 파티 오픈 중
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                {parties.map((party) => (
+                  <div
+                    key={party.id}
+                    className="bg-party-card border border-purple-500/30 hover:border-purple-500/70 rounded-3xl overflow-hidden shadow-xl flex flex-col justify-between transition group"
+                  >
+                    <div>
+                      {/* 배너 이미지 */}
+                      <div className="relative aspect-video w-full bg-slate-950 overflow-hidden">
+                        <img
+                          src={party.bannerImage || "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=600&q=80"}
+                          alt={party.name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent" />
+                        <span className="absolute top-3 left-3 px-2.5 py-1 rounded-lg bg-black/80 backdrop-blur-md text-[10px] font-bold text-amber-300 border border-amber-500/30">
+                          {party.theme}
+                        </span>
+                      </div>
+
+                      {/* 정보 본문 */}
+                      <div className="p-5 space-y-3">
+                        <h4 className="text-base font-bold text-white leading-snug group-hover:text-party-pink transition">
+                          {party.name}
+                        </h4>
+
+                        <div className="space-y-1.5 text-xs text-slate-300">
+                          <div className="flex items-center gap-1.5 truncate">
+                            <MapPin className="w-3.5 h-3.5 text-party-cyan flex-shrink-0" />
+                            <span className="truncate">{party.location}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <Users className="w-3.5 h-3.5 text-purple-400 flex-shrink-0" />
+                            <span>호스트: <strong>{party.hostName}</strong> ({party.activeGuestsCount}명 서버 접속)</span>
+                          </div>
+                        </div>
+
+                        <p className="text-xs text-slate-400 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 line-clamp-2">
+                          "{party.announcement}"
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* 카드 하단 액션 버튼 */}
+                    <div className="p-4 pt-0 flex gap-2">
+                      <button
+                        onClick={() => setPartyQrModalData(party)}
+                        className="py-2.5 px-3 bg-slate-900 hover:bg-slate-800 border border-purple-500/30 text-amber-300 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer"
+                        title="현장 초청 QR코드 열기"
+                      >
+                        <QrCode className="w-4 h-4 text-amber-400" />
+                        <span className="hidden sm:inline">QR코드</span>
+                      </button>
+
+                      <button
+                        onClick={() => handleSelectParty(party)}
+                        className="flex-1 py-2.5 px-4 bg-gradient-to-r from-party-pink to-party-purple text-white font-bold rounded-xl text-xs shadow-lg shadow-pink-500/20 hover:opacity-90 active:scale-95 transition flex items-center justify-center gap-1.5 cursor-pointer"
+                      >
+                        <span>파티룸 입장하기</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        ) : (
+          /* ======================================================== */
+          /* 2. 파티룸 게임 뷰 (Current Active Party Game Room) */
+          /* ======================================================== */
+          <div>
+            {/* 파티 메인 헤더 배너 */}
+            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-purple-900/60 via-slate-900/80 to-pink-900/60 border border-purple-500/30 p-6 sm:p-8 mb-6 shadow-2xl">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-pink-500/10 rounded-full blur-3xl pointer-events-none" />
+              <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                      <Flame className="w-3.5 h-3.5 text-party-pink animate-pulse" /> {currentParty.theme}
+                    </span>
+                    <button
+                      onClick={() => setIsLandingMode(true)}
+                      className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-900/80 hover:bg-slate-800 text-slate-300 border border-slate-700 transition cursor-pointer"
+                    >
+                      ← 파티 목록 홈으로 나가기
+                    </button>
+                  </div>
+                  <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+                    {currentParty.name}
+                  </h2>
+                  <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-xl">
+                    {currentParty.announcement}
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    onClick={() => setPartyQrModalData(currentParty)}
+                    className="px-3.5 py-2 bg-slate-900 hover:bg-slate-800 border border-purple-500/40 text-amber-300 rounded-2xl text-xs font-bold shadow-md flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <QrCode className="w-4 h-4 text-amber-400" />
+                    <span>📱 초대 QR</span>
+                  </button>
+
+                  <button
+                    onClick={() => setIsCreateQuestOpen(true)}
+                    className="px-3.5 py-2 bg-gradient-to-r from-amber-400 to-orange-500 hover:opacity-90 active:scale-95 text-slate-950 rounded-2xl text-xs font-black shadow-lg shadow-amber-500/20 flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <PlusCircle className="w-4 h-4 text-slate-950" />
+                    <span>+ 퀘스트 만들기</span>
+                  </button>
+
+                  <button
+                    onClick={() => setIsRouletteOpen(true)}
+                    className="px-3.5 py-2 bg-gradient-to-r from-party-pink to-purple-600 hover:opacity-90 active:scale-95 text-white rounded-2xl text-xs font-bold shadow-lg shadow-pink-500/20 flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Dices className="w-4 h-4 text-amber-300" />
+                    <span>🎰 룰렛</span>
+                  </button>
+
+                  <button
+                    onClick={() => setIsSponsorOpen(true)}
+                    className="px-3.5 py-2 bg-gradient-to-r from-amber-300 to-pink-500 hover:opacity-90 active:scale-95 text-slate-950 rounded-2xl text-xs font-black shadow-lg shadow-amber-500/20 flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Crown className="w-4 h-4 text-slate-950" />
+                    <span>👑 후원</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* 탭별 뷰 */}
+            {activeTab === "quests" && (
+              <QuestList
+                quests={quests}
+                onCompleteQuest={handleCompleteQuest}
+                onSubmitForApproval={handleSubmitForApproval}
+                onApproveSubmission={handleApproveSubmission}
+                onRejectSubmission={handleRejectSubmission}
+                onNavigateSocial={() => setActiveTab("networking")}
+                onOpenCreateQuestModal={() => setIsCreateQuestOpen(true)}
+              />
+            )}
+
+            {activeTab === "networking" && (
+              <NetworkingWall
+                currentUser={user}
+                guests={guests}
+                guestbook={guestbook}
+                photoFeed={photoFeed}
+                onAddGuestbookEntry={handleAddGuestbookEntry}
+                onReactPhotoFeed={handleReactPhotoFeed}
+                onOpenOnboarding={() => setIsOnboardingOpen(true)}
+              />
+            )}
+
+            {activeTab === "leaderboard" && (
+              <Leaderboard
+                currentUser={user}
+                guests={guests}
+              />
+            )}
+
+            {activeTab === "rewards" && (
+              <RewardStore
+                currentUser={user}
+                rewards={rewards}
+                myCoupons={user?.myCoupons || []}
+                onRedeemReward={handleRedeemReward}
+                onToggleUseCoupon={handleToggleUseCoupon}
+                onOpenOnboarding={() => setIsOnboardingOpen(true)}
+              />
+            )}
+
+            {activeTab === "host" && (
+              <HostDashboard
+                partyInfo={{
+                  name: currentParty.name,
+                  theme: currentParty.theme,
+                  location: currentParty.location,
+                  announcement: currentParty.announcement,
+                  activeGuestsCount: currentParty.activeGuestsCount,
+                }}
+                onUpdatePartyInfo={(info) => {
+                  setCurrentParty((prev) => ({ ...prev, ...info }));
+                }}
+                quests={quests}
+                onAddQuest={handleAddQuest}
+                onDeleteQuest={handleDeleteQuest}
+                guestCount={guests.length}
+              />
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* 현장 파티 초청 전용 QR코드 모달 */}
+      {partyQrModalData && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in zoom-in-95 duration-150">
+          <div className="relative w-full max-w-sm bg-party-card border border-purple-500/50 rounded-3xl p-6 shadow-2xl text-center text-slate-100">
+            <button
+              onClick={() => setPartyQrModalData(null)}
+              className="absolute top-4 right-4 p-1.5 rounded-full bg-slate-800 text-slate-400 hover:text-white"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            <span className="inline-block px-3 py-1 rounded-full text-[10px] font-extrabold bg-purple-500/20 text-purple-300 border border-purple-500/40 mb-2">
+              파티 현장 스캔 전용 QR코드
+            </span>
+
+            <h4 className="text-lg font-bold text-white mb-1">
+              {partyQrModalData.name}
+            </h4>
+            <p className="text-xs text-slate-300 mb-5">
+              스마트폰 카메라로 QR을 스캔하거나 링크를 공유해 입장하세요!
+            </p>
+
+            <div className="bg-white text-slate-950 rounded-2xl p-5 mb-4 shadow-xl max-w-xs mx-auto">
+              <img
+                src={partyQrModalData.qrUrl}
+                alt="파티 입장 QR"
+                className="w-48 h-48 mx-auto rounded-xl border border-slate-200 shadow-md"
+              />
+              <p className="text-[10px] text-slate-500 mt-3 font-mono">
+                호스트: {partyQrModalData.hostName}
               </p>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex gap-2">
               <button
-                onClick={() => setIsCreateQuestOpen(true)}
-                className="px-3.5 py-2 bg-gradient-to-r from-amber-400 to-orange-500 hover:opacity-90 active:scale-95 text-slate-950 rounded-2xl text-xs font-black shadow-lg shadow-amber-500/20 flex items-center gap-1.5 cursor-pointer"
+                onClick={() => {
+                  const origin = typeof window !== "undefined" ? window.location.origin : "https://partyquest-app.vercel.app";
+                  const shareUrl = `${origin}/?partyId=${partyQrModalData.id}`;
+                  navigator.clipboard.writeText(shareUrl);
+                  alert("파티 초청 링크가 복사되었습니다!");
+                }}
+                className="flex-1 py-2.5 bg-gradient-to-r from-party-pink to-party-purple text-white font-bold rounded-xl text-xs shadow-md cursor-pointer"
               >
-                <PlusCircle className="w-4 h-4 text-slate-950" />
-                <span>+ 퀘스트 만들기</span>
-              </button>
-
-              <button
-                onClick={() => setIsRouletteOpen(true)}
-                className="px-3.5 py-2 bg-gradient-to-r from-party-pink to-purple-600 hover:opacity-90 active:scale-95 text-white rounded-2xl text-xs font-bold shadow-lg shadow-pink-500/20 flex items-center gap-1.5 cursor-pointer"
-              >
-                <Dices className="w-4 h-4 text-amber-300" />
-                <span>🎰 룰렛</span>
-              </button>
-
-              <button
-                onClick={() => setIsSponsorOpen(true)}
-                className="px-3.5 py-2 bg-gradient-to-r from-amber-300 to-pink-500 hover:opacity-90 active:scale-95 text-slate-950 rounded-2xl text-xs font-black shadow-lg shadow-amber-500/20 flex items-center gap-1.5 cursor-pointer"
-              >
-                <Crown className="w-4 h-4 text-slate-950" />
-                <span>👑 후원</span>
+                초청 링크 복사하기 🔗
               </button>
             </div>
           </div>
         </div>
+      )}
 
-        {/* 탭별 뷰 */}
-        {activeTab === "quests" && (
-          <QuestList
-            quests={quests}
-            onCompleteQuest={handleCompleteQuest}
-            onSubmitForApproval={handleSubmitForApproval}
-            onApproveSubmission={handleApproveSubmission}
-            onRejectSubmission={handleRejectSubmission}
-            onNavigateSocial={() => setActiveTab("networking")}
-            onOpenCreateQuestModal={() => setIsCreateQuestOpen(true)}
-          />
-        )}
-
-        {activeTab === "networking" && (
-          <NetworkingWall
-            currentUser={user}
-            guests={guests}
-            guestbook={guestbook}
-            photoFeed={photoFeed}
-            onAddGuestbookEntry={handleAddGuestbookEntry}
-            onReactPhotoFeed={handleReactPhotoFeed}
-            onOpenOnboarding={() => setIsOnboardingOpen(true)}
-          />
-        )}
-
-        {activeTab === "leaderboard" && (
-          <Leaderboard
-            currentUser={user}
-            guests={guests}
-          />
-        )}
-
-        {activeTab === "rewards" && (
-          <RewardStore
-            currentUser={user}
-            rewards={rewards}
-            myCoupons={user?.myCoupons || []}
-            onRedeemReward={handleRedeemReward}
-            onToggleUseCoupon={handleToggleUseCoupon}
-            onOpenOnboarding={() => setIsOnboardingOpen(true)}
-          />
-        )}
-
-        {activeTab === "host" && (
-          <HostDashboard
-            partyInfo={partyInfo}
-            onUpdatePartyInfo={setPartyInfo}
-            quests={quests}
-            onAddQuest={handleAddQuest}
-            onDeleteQuest={handleDeleteQuest}
-            guestCount={guests.length}
-          />
-        )}
-      </div>
+      {/* 나만의 파티 개최 모달 */}
+      <CreatePartyModal
+        isOpen={isCreatePartyOpen}
+        onClose={() => setIsCreatePartyOpen(false)}
+        onPartyCreated={handlePartyCreated}
+      />
 
       {/* 온보딩 모달 */}
       <OnboardingModal
