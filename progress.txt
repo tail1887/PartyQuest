@@ -65,6 +65,12 @@ Model: Agentic Development Loop
 - 추가 회의 전사본 및 기능 분석 문서 작성 (doc/ref/additional_brainstorming_transcript.md)
 - 빌드 검증: next build 성공
 
+[TASK 12 COMPLETE]
+- 해커톤 심사 제출용 독립 발표 HTML 슬라이드 생성 (doc/presentation.html)
+- GTM 33% 및 BM 33% 강조 1분 30초 피칭 발표 스크립트 작성 (doc/speech_script.md)
+- 빌드 검증: next build 성공
+
+
 ALL TASKS COMPLETE
 
 
