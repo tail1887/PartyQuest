@@ -128,6 +128,9 @@
 - [x] **Task 32**: 스크린샷 2차 제보 상단 🏠 파티 홈 버튼 + 탭 중복 노출 근본 해결 및 next.config.mjs 캐시 해시 강제 (PartyRoomHeader.tsx, next.config.mjs)
 - [x] **Task 33**: [진범 버그 해결] Header.tsx 구형 6대 탭 잔존 코드 및 page.tsx 구형 <Header> 호출 제거하여 랜딩 헤더 vs 파티룸 헤더 100% 완전 전면 교체 (Header.tsx & page.tsx)
 - [x] **Task 34**: [브라우저 Service Worker/Cache Storage 강제 박멸] 클라이언트 자가 복구 캐시 정화 스크립트 탑재 (page.tsx)
+- [x] **Task 35**: 개별 파티 룸 히어로 배너 내 중복 📱 초대 QR 버튼 제거 (page.tsx)
+
+
 
 
 

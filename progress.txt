@@ -190,7 +190,13 @@ Model: Agentic Development Loop
 - 유저 브라우저에 가둬졌던 구형 PWA/Asset 캐시를 기술적으로 100% 자동 박멸
 - 빌드 검증: next build 성공
 
+[TASK 35 COMPLETE]
+- 유저 스크린샷 4차 요청 반영: 개별 파티 룸 히어로 배너 우측 중복 [📱 초대 QR] 버튼 제거 완료
+- 헤더 상단 오른쪽 [초대 QR] 버튼과 단일화하여 UI 깔끔 정돈
+- 빌드 검증: next build 성공
+
 ALL TASKS COMPLETE
+
 
 
 
