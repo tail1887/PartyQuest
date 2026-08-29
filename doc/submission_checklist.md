@@ -33,13 +33,14 @@
 ---
 
 ### 4) 실제 서비스 라이브 URL
-- **Vercel / 배포 URL**: `https://partyquest-n87nnwfi0-parks-projects-faafd5b8.vercel.app`
+- **Vercel / 라이브 배포 URL**: `https://partyquest-app.vercel.app`
 - **GitHub 저장소**: `https://github.com/tail1887/PartyQuest`
 - **로컬 데모 실행 방법**:
   ```bash
   npm run dev
   # http://localhost:3000 접속
   ```
+
 
 
 ---
