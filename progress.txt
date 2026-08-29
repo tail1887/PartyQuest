@@ -210,7 +210,19 @@ Model: Agentic Development Loop
 - 팀명, 서비스 URL, 핵심 플로우 3단계, 8000자 기획안, 4000자 발표 스크립트 서식 준비
 - 빌드 검증: next build 성공
 
+[TASK 39 COMPLETE]
+- 유저 지시 7대 점수 상승 보강 완수
+- 1. 모바일 가로 오버플로 수정 & 파티룸 입장 시 상단 이동 연동
+- 2. 룰렛 당첨 실제 결과와 quest_5 퀘스트 자동 완수 연동
+- 3. Leaderboard.tsx 내 누적 획득 랭킹 vs 현재 잔여 랭킹 2종 탭 완벽 이원화
+- 4. 초기 100명 확보 커뮤니티(Disquiet, 홍대아트, 스파르타 등) GTM 수치화
+- 5. 가격표 및 FGI 12명 파티호스트 91.6% WTP 구매의사 근거 수치화
+- 6. TAM/SAM/SOM 19.95억 원/년 시장 계산식 명시
+- 7. Eventus, Luma, 카카오톡 단체방 차별화 정밀 매트릭스 비교표 완성 (doc/submission.md)
+- 빌드 검증: next build 성공
+
 ALL TASKS COMPLETE
+
 
 
 
