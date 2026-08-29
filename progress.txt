@@ -33,6 +33,13 @@ Model: Agentic Development Loop
 - 실시간 파티 방명록 피드 구현 및 Q4 소셜 퀘스트 자동 완료 연동
 - 빌드 검증: next build 성공
 
+[TASK 6 COMPLETE]
+- 리워드 4종 프리셋 데이터 설계 (src/data/mockRewards.ts)
+- Leaderboard 컴포넌트 구현 (포인트 기준 내림차순 랭킹, Top 3 왕관 뱃지, 내 순위 하이라이트)
+- RewardStore 컴포넌트 구현 (포인트 차감, 실시간 잔여수량, 모바일 바코드/쿠폰 발급 팝업 모달)
+- 빌드 검증: next build 성공
+
+
 
 
 

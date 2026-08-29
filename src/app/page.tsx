@@ -5,10 +5,13 @@ import Header, { ActiveTab } from "@/components/Header";
 import OnboardingModal from "@/components/OnboardingModal";
 import QuestList from "@/components/QuestList";
 import NetworkingWall from "@/components/NetworkingWall";
+import Leaderboard from "@/components/Leaderboard";
+import RewardStore from "@/components/RewardStore";
 import QuestSuccessModal from "@/components/QuestSuccessModal";
-import { UserProfile, PartyInfo, Quest, GuestbookEntry } from "@/types/party";
+import { UserProfile, PartyInfo, Quest, GuestbookEntry, RewardItem } from "@/types/party";
 import { PRESET_QUESTS } from "@/data/presetQuests";
 import { MOCK_GUESTS, INITIAL_GUESTBOOK } from "@/data/mockGuests";
+import { MOCK_REWARDS } from "@/data/mockRewards";
 import { triggerConfetti } from "@/utils/confetti";
 import { Flame, ArrowRight } from "lucide-react";
 
@@ -19,6 +22,7 @@ export default function Home() {
   const [quests, setQuests] = useState<Quest[]>(PRESET_QUESTS);
   const [guests, setGuests] = useState<UserProfile[]>(MOCK_GUESTS);
   const [guestbook, setGuestbook] = useState<GuestbookEntry[]>(INITIAL_GUESTBOOK);
+  const [rewards, setRewards] = useState<RewardItem[]>(MOCK_REWARDS);
   const [completedQuestModalData, setCompletedQuestModalData] = useState<Quest | null>(null);
   const [partyInfo, setPartyInfo] = useState<PartyInfo>({
     name: "2026 I/O Extended: Hack the Beat Networking Party",
@@ -121,6 +125,29 @@ export default function Home() {
     }
   };
 
+  // 리워드 교환 핸들러 (포인트 차감 및 수량 감소)
+  const handleRedeemReward = (reward: RewardItem) => {
+    if (!user || user.points < reward.pointsRequired) return;
+
+    const updatedUser: UserProfile = {
+      ...user,
+      points: user.points - reward.pointsRequired,
+    };
+    setUser(updatedUser);
+    setGuests((prev) =>
+      prev.map((g) => (g.id === updatedUser.id ? updatedUser : g))
+    );
+    localStorage.setItem("partyquest_user", JSON.stringify(updatedUser));
+
+    setRewards((prev) =>
+      prev.map((r) =>
+        r.id === reward.id
+          ? { ...r, availableCount: Math.max(0, r.availableCount - 1) }
+          : r
+      )
+    );
+  };
+
   return (
     <main className="min-h-screen flex flex-col pb-20">
       {/* 헤더 & 네비게이션 */}
@@ -182,25 +209,19 @@ export default function Home() {
         )}
 
         {activeTab === "leaderboard" && (
-          <div className="bg-party-card border border-purple-500/20 rounded-3xl p-6 sm:p-8 shadow-xl">
-            <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
-              🏆 실시간 포인트 랭킹
-            </h3>
-            <p className="text-xs text-slate-400">
-              가장 적극적으로 파티를 즐긴 참가자 TOP 랭킹입니다! (Task 6 구현 예정)
-            </p>
-          </div>
+          <Leaderboard
+            currentUser={user}
+            guests={guests}
+          />
         )}
 
         {activeTab === "rewards" && (
-          <div className="bg-party-card border border-purple-500/20 rounded-3xl p-6 sm:p-8 shadow-xl">
-            <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
-              🎁 리워드 교환소
-            </h3>
-            <p className="text-xs text-slate-400">
-              모은 포인트로 스낵바 음료권 및 럭키드로우 티켓을 교환하세요! (Task 6 구현 예정)
-            </p>
-          </div>
+          <RewardStore
+            currentUser={user}
+            rewards={rewards}
+            onRedeemReward={handleRedeemReward}
+            onOpenOnboarding={() => setIsOnboardingOpen(true)}
+          />
         )}
 
         {activeTab === "host" && (
