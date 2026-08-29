@@ -125,6 +125,9 @@
 - [x] **Task 29**: Next.js force-dynamic 캐시 무력화 및 랜딩 모드 초기 가드 강화로 브라우저 구버전 메뉴 캐시 100% 갱신 (page.tsx)
 - [x] **Task 30**: 호스트 vs 일반 참가자 탭 권한 분리(⚙️ 호스트 탭 은닉/노출) & 글로벌 서비스 계정 vs 파티 전용 프로필 아키텍처 분리 (PartyRoomHeader.tsx, types/party.ts, page.tsx)
 - [x] **Task 31**: 구형 로컬스토리지 복원 부작용 방지 & 플레이라이트(Playwright) E2E 시나리오 실기 자동 검증 완수 (tests/e2e.spec.ts & page.tsx)
+- [x] **Task 32**: 스크린샷 2차 제보 상단 🏠 파티 홈 버튼 + 탭 중복 노출 근본 해결 및 next.config.mjs 캐시 해시 강제 (PartyRoomHeader.tsx, next.config.mjs)
+
+
 
 
 
