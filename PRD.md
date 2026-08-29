@@ -116,6 +116,9 @@
 - [x] **Task 20**: 메인 파티 배너 중복 마이월렛 버튼 제거 및 배너 퀵 액션 버튼 UI 정리 (page.tsx)
 - [x] **Task 21**: 프로덕션 서비스용 JudgeQuickBanner 배너 완전히 제거하여 상용 앱 완성도 확보 (page.tsx)
 - [x] **Task 22**: 방명록 피드 내 💌 파티 응원 메시지 vs 🎯 퀘스트 인증 메시지 구분 뱃지 및 필터 태깅 구현 (types/party.ts & NetworkingWall.tsx)
+- [x] **Task 23**: 이벤터스/Luma형 멀티 파티 개최 플랫폼, 파티 초대 QR코드 생성 & 파티 탐색/입장 시스템 구축 (CreatePartyModal.tsx, mockParties.ts, page.tsx)
+
+
 
 
 

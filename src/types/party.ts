@@ -95,3 +95,20 @@ export interface PartyInfo {
   announcement: string;
   activeGuestsCount: number;
 }
+
+export interface PartyRoom {
+  id: string;
+  name: string;
+  theme: string;
+  location: string;
+  announcement: string;
+  hostName: string;
+  bannerImage?: string;
+  qrUrl: string;
+  createdAt: string;
+  activeGuestsCount: number;
+  quests: Quest[];
+  guests: UserProfile[];
+  guestbook: GuestbookEntry[];
+  photoFeed: PhotoFeedEntry[];
+}
