@@ -130,6 +130,9 @@
 - [x] **Task 34**: [브라우저 Service Worker/Cache Storage 강제 박멸] 클라이언트 자가 복구 캐시 정화 스크립트 탑재 (page.tsx)
 - [x] **Task 35**: 개별 파티 룸 히어로 배너 내 중복 📱 초대 QR 버튼 제거 (page.tsx)
 - [x] **Task 36**: 파티 룸 상단 헤더 우측 [📱 초대 QR] 버튼 100% 전면 삭제 및 UI 단일화 (PartyRoomHeader.tsx)
+- [x] **Task 37**: [해커톤 점수 극대화 시나리오] 심사위원 원클릭 3초 데모 체험 바(Judge Demo Bar) & 럭키드로우 추첨 클라이맥스 탑재 (page.tsx & PartyRoomHeader.tsx)
+
+
 
 
 
